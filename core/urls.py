@@ -17,8 +17,19 @@ from django.conf.urls import include
 from django.contrib import admin
 from django.urls import path
 
+# from rest_framework.routers import DefaultRouter
+# from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+
+# from user.views import UserViewSet
+
+# router = DefaultRouter()
+# router.register(r"users", UserViewSet, basename="user")
+
 urlpatterns = [
     path("admin/", admin.site.urls),
-    # path('account/', include('account.urls')),python manage.py runserver --settings=mysite.settings
-    path("api-auth/", include("rest_framework.urls")),
+    # path("user/", include("user.urls")),
+    path("auth/", include("djoser.urls")),
+    path("auth/", include("djoser.urls.jwt")),
+    # path("auth/", include("djoser.urls.authtoken")),
 ]
+# + router.urls
