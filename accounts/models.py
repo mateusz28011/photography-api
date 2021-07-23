@@ -30,8 +30,10 @@ class User(AbstractBaseUser, PermissionsMixin):
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
     join_date = models.DateTimeField(default=timezone.now)
+    # profile = models.ForeignKey(Profile,on_delete=models.SET_NULL,null=True,blank=True)
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=False)
+    is_vendor = models.BooleanField(default=False)
 
     objects = CustomUserManager()
 
@@ -40,3 +42,9 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.email
+
+
+# class Profile(models.Model):
+#     avatar
+#     description
+#     albums

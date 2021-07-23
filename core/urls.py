@@ -16,20 +16,27 @@ Including another URLconf
 from django.conf.urls import include
 from django.contrib import admin
 from django.urls import path
+from django.views.generic import base
+from order.views import NoteViewSet, OrderViewSet
+from rest_framework_nested import routers
 
-# from rest_framework.routers import DefaultRouter
-# from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+router = routers.SimpleRouter()
 
-# from user.views import UserViewSet
+router.register(r"orders", OrderViewSet)
 
-# router = DefaultRouter()
-# router.register(r"users", UserViewSet, basename="user")
+notes_router = routers.NestedSimpleRouter(router, r"orders", lookup="order")
+notes_router.register(r"notes", NoteViewSet, basename="order-notes")
 
-urlpatterns = [
-    path("admin/", admin.site.urls),
-    # path("user/", include("user.urls")),
-    path("auth/", include("djoser.urls")),
-    path("auth/", include("djoser.urls.jwt")),
-    # path("auth/", include("djoser.urls.authtoken")),
-]
-# + router.urls
+urlpatterns = (
+    [
+        path("admin/", admin.site.urls),
+        # path("user/", include("user.urls")),
+        path("auth/", include("djoser.urls")),
+        path("auth/", include("djoser.urls.jwt")),
+        # path("auth/", include("djoser.urls.authtoken")),
+    ]
+    + router.urls
+    + notes_router.urls
+)
+
+print(urlpatterns)
