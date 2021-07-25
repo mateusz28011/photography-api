@@ -20,6 +20,8 @@ load_dotenv()
 
 EMAIL_ADDRESS = os.getenv("EMAIL_ADDRESS")
 EMAIL_APP_PASSWORD = os.getenv("EMAIL_APP_PASSWORD")
+DATABASE_PASSWORD = os.getenv("DATABASE_PASSWORD")
+DJANGO_SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -29,7 +31,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-z2xh7u-++5dg!ui16fc+8*oyqh^5#nwu12l0@3^#bw_rh0!(2^"
+SECRET_KEY = DJANGO_SECRET_KEY
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -52,6 +54,8 @@ INSTALLED_APPS = [
     "accounts",
     "djoser",
     "order",
+    "album",
+    "django_sendfile",
 ]
 
 MIDDLEWARE = [
@@ -91,8 +95,12 @@ WSGI_APPLICATION = "core.wsgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": "postgres",
+        "USER": "postgres",
+        "PASSWORD": DATABASE_PASSWORD,
+        "HOST": "localhost",
+        "PORT": "5432",
     }
 }
 
@@ -142,6 +150,14 @@ USE_TZ = True
 
 STATIC_URL = "/static/"
 
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+MEDIA_URL = "/media/"
+
+SENDFILE_BACKEND = "django_sendfile.backends.development"
+
+SENDFILE_ROOT = os.path.join(BASE_DIR, "protected")
+SENDFILE_URL = "/protected/"
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
@@ -183,5 +199,8 @@ DJOSER = {
         "user": "accounts.serializers.UserSerializer",
         "current_user": "accounts.serializers.UserSerializer",
         "user_delete": "djoser.serializers.UserDeleteSerializer",
+    },
+    "PERMISSIONS": {
+        "user": ["rest_framework.permissions.AllowAny"],
     },
 }

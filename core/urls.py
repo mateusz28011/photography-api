@@ -13,19 +13,26 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+from album.views import AlbumViewset, AllowedUsersViewSet, ImageViewset
+from django.conf import settings
 from django.conf.urls import include
+from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path
-from django.views.generic import base
 from order.views import NoteViewSet, OrderViewSet
 from rest_framework_nested import routers
 
 router = routers.SimpleRouter()
 
 router.register(r"orders", OrderViewSet)
+router.register(r"albums", AlbumViewset)
+router.register(r"images", ImageViewset)
 
 notes_router = routers.NestedSimpleRouter(router, r"orders", lookup="order")
 notes_router.register(r"notes", NoteViewSet, basename="order-notes")
+
+allowed_users_router = routers.NestedSimpleRouter(router, r"albums", lookup="album")
+allowed_users_router.register(r"access", AllowedUsersViewSet, basename="album-add-access")
 
 urlpatterns = (
     [
@@ -37,6 +44,11 @@ urlpatterns = (
     ]
     + router.urls
     + notes_router.urls
+    + allowed_users_router.urls
+    + static(
+        settings.MEDIA_URL,
+        document_root=settings.MEDIA_ROOT,
+    )
 )
 
 print(urlpatterns)

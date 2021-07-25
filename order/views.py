@@ -42,10 +42,7 @@ class NoteViewSet(mixins.CreateModelMixin, mixins.UpdateModelMixin, viewsets.Gen
         serializer.is_valid(raise_exception=True)
 
         order = self.get_object()
-        note = serializer.save(user=request.user)
-
-        order.notes.add(note)
-        order.save()
+        serializer.save(user=request.user, order=order)
 
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)

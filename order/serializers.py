@@ -7,7 +7,7 @@ from .models import Note, Order
 class NoteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Note
-        fields = "__all__"
+        exclude = ["order"]
         extra_kwargs = {"created": {"read_only": True}, "user": {"read_only": True}}
 
 
@@ -26,7 +26,12 @@ class OrderSerializer(serializers.ModelSerializer):
 class OrderNestedSerializer(OrderSerializer):
     vendor = UserSerializer(read_only=True)
     client = UserSerializer(read_only=True)
-    notes = NoteSerializer(read_only=True, many=True)
+    notes = serializers.SerializerMethodField()
+    # notes = NoteSerializer(read_only=True, many=True)
 
     class Meta(OrderSerializer.Meta):
         fields = OrderSerializer.Meta.fields + ["notes"]
+
+    def get_notes(self, obj):
+        notes = Note.objects.filter(order=obj)
+        return NoteSerializer(notes, many=True).data
