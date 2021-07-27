@@ -50,3 +50,14 @@ class ImageSerializer(serializers.ModelSerializer):
 
     def get_url(self, obj):
         return reverse("image-detail", args=[obj.id], request=self.context["request"])
+
+
+class ImageUploadSerializer(ImageSerializer):
+    class Meta(ImageSerializer.Meta):
+        fields = ["image"]
+        exclude = None
+        extra_kwargs = {"author": {"required": False}, "album": {"required": False}}
+
+    def create(self, validated_data):
+        album = self.context["album"]
+        return Image.objects.create(author=album.creator, album=album, **validated_data)

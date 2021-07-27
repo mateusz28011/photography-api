@@ -34,6 +34,9 @@ notes_router.register(r"notes", NoteViewSet, basename="order-notes")
 allowed_users_router = routers.NestedSimpleRouter(router, r"albums", lookup="album")
 allowed_users_router.register(r"access", AllowedUsersViewSet, basename="album-add-access")
 
+images_router = routers.NestedSimpleRouter(router, r"albums", lookup="album")
+images_router.register(r"images", ImageViewset, basename="album-images")
+
 urlpatterns = (
     [
         path("admin/", admin.site.urls),
@@ -45,10 +48,11 @@ urlpatterns = (
     + router.urls
     + notes_router.urls
     + allowed_users_router.urls
+    + images_router.urls
     + static(
         settings.MEDIA_URL,
         document_root=settings.MEDIA_ROOT,
     )
 )
 
-print(urlpatterns)
+print(images_router.urls)

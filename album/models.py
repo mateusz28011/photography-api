@@ -3,9 +3,7 @@ from core.settings import BASE_DIR
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
 from django.db import models
-from django.db.models.deletion import CASCADE
 from django.utils import timezone
-from rest_framework.serializers import ValidationError
 
 upload_storage = FileSystemStorage(location=settings.SENDFILE_ROOT, base_url="/protected")
 
@@ -22,8 +20,8 @@ class Album(models.Model):
 
 
 class Image(models.Model):
-    height = models.PositiveIntegerField(blank=True)
-    width = models.PositiveIntegerField(blank=True)
+    height = models.PositiveIntegerField(null=True, blank=True)
+    width = models.PositiveIntegerField(null=True, blank=True)
     image = models.ImageField(
         upload_to=user_directory_path, storage=upload_storage, height_field="height", width_field="width"
     )
