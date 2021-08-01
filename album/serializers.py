@@ -1,6 +1,4 @@
-import os
-
-from accounts.serializers import UserBasicInfoSerializer, UserSerializer
+from accounts.serializers import UserBasicInfoSerializer
 from core.settings import BASE_DIR
 from rest_framework import serializers
 from rest_framework.reverse import reverse
@@ -19,6 +17,12 @@ class AlbumSmallSerializer(serializers.ModelSerializer):
         return reverse("album-detail", args=[obj.id], request=self.context["request"])
 
 
+class AlbumCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Album
+        fields = ["id", "name", "parent_album", "is_public"]
+
+
 class AlbumSerializer(serializers.ModelSerializer):
     images = serializers.SerializerMethodField()
     child_albums = serializers.SerializerMethodField()
@@ -32,11 +36,11 @@ class AlbumSerializer(serializers.ModelSerializer):
         extra_kwargs = {"created": {"read_only": True}, "allowed_users": {"read_only": True}}
 
     def get_images(self, obj):
-        images = Image.objects.filter(album=obj)
+        images = obj.image_set.all()
         return ImageSerializer(images, many=True, context={"request": self.context["request"]}).data
 
     def get_child_albums(self, obj):
-        albums = Album.objects.filter(parent_album=obj)
+        albums = obj.album_set.all()
         return AlbumSmallSerializer(albums, many=True, context={"request": self.context["request"]}).data
 
 

@@ -14,8 +14,8 @@ class NoteSerializer(serializers.ModelSerializer):
 class OrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
-        fields = ["id", "vendor", "client", "description", "cost"]
-        extra_kwargs = {"vendor": {"required": True}, "client": {"required": True}}
+        fields = ["id", "vendor", "client", "description"]
+        extra_kwargs = {"vendor": {"required": True}}
 
     def validate(self, attrs):
         instance = Order(**attrs)
@@ -33,5 +33,5 @@ class OrderNestedSerializer(OrderSerializer):
         fields = OrderSerializer.Meta.fields + ["notes"]
 
     def get_notes(self, obj):
-        notes = Note.objects.filter(order=obj)
+        notes = obj.note_set.all()
         return NoteSerializer(notes, many=True).data

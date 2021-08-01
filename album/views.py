@@ -1,4 +1,3 @@
-import inspect
 import os
 
 from accounts.models import User
@@ -7,10 +6,12 @@ from django_sendfile import sendfile
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound, PermissionDenied, ValidationError
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 
 from album.permissions import (
+    CanCreate,
     IsAuthor,
     IsAuthorOrHasAccess,
     IsCreator,
@@ -18,26 +19,34 @@ from album.permissions import (
 )
 
 from .models import Album, Image
-from .serializers import AlbumSerializer, ImageUploadSerializer
+from .serializers import AlbumCreateSerializer, AlbumSerializer, ImageUploadSerializer
 
 
-def get_image_path(instance):
-    image = instance.image
-    path = os.path.join(image.storage.base_url, image.name)
-    path = BASE_DIR.__str__() + path
-    return path
-
-
-class AlbumViewset(mixins.RetrieveModelMixin, viewsets.GenericViewSet):
+class AlbumViewset(
+    mixins.CreateModelMixin, mixins.RetrieveModelMixin, mixins.DestroyModelMixin, viewsets.GenericViewSet
+):
     queryset = Album.objects.all()
     serializer_class = AlbumSerializer
+    create_serializer_class = AlbumCreateSerializer
+
+    def get_serializer_class(self):
+        if self.action == "create":
+            if hasattr(self, "create_serializer_class"):
+                return self.create_serializer_class
+        return self.serializer_class
 
     def get_permissions(self):
-        if self.action == "retrieve":
+        if self.action == "create":
+            permission_classes = [IsAuthenticated & CanCreate]
+        elif self.action == "retrieve":
             permission_classes = [IsCreatorOrHasAccess]
-        elif self.action == "add_image":
+        else:
             permission_classes = [IsCreator]
         return [permission() for permission in permission_classes]
+
+    def perform_create(self, serializer):
+        serializer.validated_data["creator"] = self.request.user
+        serializer.save()
 
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -137,11 +146,11 @@ class ImageViewset(
 
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
-        path = get_image_path(instance)
+        path = os.path.normpath(BASE_DIR.__str__() + instance.image.url)
         return sendfile(request, path)
 
-    def destroy(self, request, *args, **kwargs):
-        instance = self.get_object()
-        instance.image.delete()
-        self.perform_destroy(instance)
-        return Response(status=status.HTTP_204_NO_CONTENT)
+    # def destroy(self, request, *args, **kwargs):
+    #     instance = self.get_object()
+    #     instance.image.delete()
+    #     self.perform_destroy(instance)
+    #     return Response(status=status.HTTP_204_NO_CONTENT)

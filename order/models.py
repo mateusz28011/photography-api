@@ -11,11 +11,12 @@ class Order(models.Model):
     client = models.ForeignKey(User, related_name="client", on_delete=models.PROTECT)
     # album = models.ForeignKey(Album, on_delete=models.SET_NULL, null=True, blank=True)
     # payment = models.ForeignKey( Payment, on_delete=models.SET_NULL, null=True,blank=True)
-    # notes = models.ManyToManyField(Note, blank=True)
 
     def clean(self):
         if self.vendor == self.client:
             raise ValidationError({"vendor": "Vendor and client can not be equal."})
+        if self.vendor.is_vendor == False:
+            raise ValidationError({"vendor": "This user is not vendor."})
 
 
 class Note(models.Model):

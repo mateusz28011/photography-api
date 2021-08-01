@@ -13,6 +13,7 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+from accounts.views import ProfileViewSet
 from album.views import AlbumViewset, AllowedUsersViewSet, ImageViewset
 from django.conf import settings
 from django.conf.urls import include
@@ -27,6 +28,7 @@ router = routers.SimpleRouter()
 router.register(r"orders", OrderViewSet)
 router.register(r"albums", AlbumViewset)
 router.register(r"images", ImageViewset)
+router.register(r"profiles", ProfileViewSet)
 
 notes_router = routers.NestedSimpleRouter(router, r"orders", lookup="order")
 notes_router.register(r"notes", NoteViewSet, basename="order-notes")

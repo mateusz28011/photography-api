@@ -11,13 +11,22 @@ class OrderViewSet(mixins.RetrieveModelMixin, mixins.ListModelMixin, mixins.Crea
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
     retrieve_list_serializer_class = OrderNestedSerializer
-    permission_classes = [IsVendorOrClient]
+    permission_classes = [permissions.IsAuthenticated, IsVendorOrClient]
 
     def get_serializer_class(self):
         if self.action in ["retrieve", "list"]:
             if hasattr(self, "retrieve_list_serializer_class"):
                 return self.retrieve_list_serializer_class
         return self.serializer_class
+
+    def create(self, request, *args, **kwargs):
+        request.data["client"] = request.user.id
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        serializer.save(client=request.user)
+
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 class NoteViewSet(mixins.CreateModelMixin, mixins.UpdateModelMixin, viewsets.GenericViewSet):

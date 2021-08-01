@@ -3,6 +3,7 @@ from django.contrib.auth.models import (
     BaseUserManager,
     PermissionsMixin,
 )
+from django.core.files.images import get_image_dimensions
 from django.db import models
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
@@ -30,7 +31,6 @@ class User(AbstractBaseUser, PermissionsMixin):
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
     join_date = models.DateTimeField(default=timezone.now)
-    # profile = models.ForeignKey(Profile,on_delete=models.SET_NULL,null=True,blank=True)
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=False)
     is_vendor = models.BooleanField(default=False)
@@ -44,7 +44,20 @@ class User(AbstractBaseUser, PermissionsMixin):
         return self.email
 
 
-# class Profile(models.Model):
-#     avatar
-#     description
-#     albums
+def validate_image(image):
+    w, h = get_image_dimensions(image)
+    if w != 500 and h != 500:
+        raise ValidationError({"avatar": "Maximum avatar size is 500x500 px."})
+
+
+def user_directory_path(instance, filename):
+    return f"profiles/user_{instance.owner.id}/avatar/{filename}"
+
+
+class Profile(models.Model):
+    name = models.CharField(max_length=100)
+    avatar = models.ImageField(upload_to=user_directory_path, default="default/avatar.png", blank=True)
+    description = models.TextField()
+    # bank_transfer = models.TextField()
+    portfolio = models.OneToOneField("album.Album", on_delete=models.PROTECT, blank=True)
+    owner = models.OneToOneField(User, on_delete=models.CASCADE)
