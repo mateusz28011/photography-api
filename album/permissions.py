@@ -1,5 +1,5 @@
 from rest_framework import permissions
-from rest_framework.exceptions import PermissionDenied
+from rest_framework.exceptions import NotFound, PermissionDenied
 
 from album.models import Album
 
@@ -23,10 +23,11 @@ class IsAuthor(permissions.BasePermission):
 
 class CanCreate(permissions.BasePermission):
     def has_permission(self, request, view):
-        print("dupa")
         if "parent_album" in request.data:
-            parent_album = Album.objects.get(pk=request.data["parent_album"])
-            print(True)
+            try:
+                parent_album = Album.objects.get(pk=request.data["parent_album"])
+            except:
+                raise NotFound({"parent_album": "Not found."})
             if parent_album.creator != request.user:
                 raise PermissionDenied()
         return request.user.is_vendor

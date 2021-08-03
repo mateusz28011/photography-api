@@ -29,7 +29,7 @@ class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
         fields = "__all__"
-        extra_kwargs = {"portofilo": {"read_only": True}}
+        extra_kwargs = {"portofilo": {"read_only": True}, "owner": {"read_only": True}}
 
 
 class ProfileNestedSerializer(ProfileSerializer):

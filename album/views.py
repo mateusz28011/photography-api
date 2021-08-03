@@ -148,9 +148,3 @@ class ImageViewset(
         instance = self.get_object()
         path = os.path.normpath(BASE_DIR.__str__() + instance.image.url)
         return sendfile(request, path)
-
-    # def destroy(self, request, *args, **kwargs):
-    #     instance = self.get_object()
-    #     instance.image.delete()
-    #     self.perform_destroy(instance)
-    #     return Response(status=status.HTTP_204_NO_CONTENT)

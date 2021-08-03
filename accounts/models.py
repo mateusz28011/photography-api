@@ -46,7 +46,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 def validate_image(image):
     w, h = get_image_dimensions(image)
-    if w != 500 and h != 500:
+    if w > 500 or h > 500:
         raise ValidationError({"avatar": "Maximum avatar size is 500x500 px."})
 
 
@@ -56,7 +56,9 @@ def user_directory_path(instance, filename):
 
 class Profile(models.Model):
     name = models.CharField(max_length=100)
-    avatar = models.ImageField(upload_to=user_directory_path, default="default/avatar.png", blank=True)
+    avatar = models.ImageField(
+        upload_to=user_directory_path, default="default/avatar.png", blank=True, validators=[validate_image]
+    )
     description = models.TextField()
     # bank_transfer = models.TextField()
     portfolio = models.OneToOneField("album.Album", on_delete=models.PROTECT, blank=True)
