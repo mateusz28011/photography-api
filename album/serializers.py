@@ -17,7 +17,7 @@ class AlbumSmallSerializer(serializers.ModelSerializer):
         return reverse("album-detail", args=[obj.id], request=self.context["request"])
 
 
-class AlbumCreateSerializer(serializers.ModelSerializer):
+class AlbumCreateUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Album
         fields = ["id", "name", "parent_album", "is_public"]
@@ -50,18 +50,20 @@ class ImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Image
         exclude = ["image", "album"]
-        extra_kwargs = {"created": {"read_only": True}}
 
     def get_url(self, obj):
-        return reverse("image-detail", args=[obj.id], request=self.context["request"])
+        request = self.context["request"]
+        album_id = request.parser_context["kwargs"]["pk"]
+        return reverse("album-images-detail", args=[album_id, obj.id], request=request)
 
 
 class ImageUploadSerializer(ImageSerializer):
     class Meta(ImageSerializer.Meta):
         fields = ["image"]
         exclude = None
-        extra_kwargs = {"author": {"required": False}, "album": {"required": False}}
 
-    def create(self, validated_data):
-        album = self.context["album"]
-        return Image.objects.create(author=album.creator, album=album, **validated_data)
+
+class ImageUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Image
+        fields = ["id", "title"]

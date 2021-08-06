@@ -36,6 +36,9 @@ SECRET_KEY = DJANGO_SECRET_KEY
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+TEST = True
+TEST_DIR = "test_data"
+
 ALLOWED_HOSTS = []
 
 
@@ -150,6 +153,7 @@ USE_TZ = True
 
 STATIC_URL = "/static/"
 
+
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 MEDIA_URL = "/media/"
 
@@ -158,12 +162,17 @@ SENDFILE_BACKEND = "django_sendfile.backends.development"
 SENDFILE_ROOT = os.path.join(BASE_DIR, "protected")
 SENDFILE_URL = "/protected/"
 
+if TEST:
+    MEDIA_ROOT = os.path.join(os.path.join(BASE_DIR, TEST_DIR), "media")
+    SENDFILE_ROOT = os.path.join(os.path.join(BASE_DIR, TEST_DIR), "protected")
+    SENDFILE_URL = f"/{TEST_DIR}{SENDFILE_URL}"
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-CORS_ALLOWED_ORIGINS = ["http://127.0.0.1:9000"]
+CORS_ALLOWED_ORIGINS = ["http://127.0.0.1:8000"]
 
 AUTH_USER_MODEL = "accounts.User"
 

@@ -7,12 +7,14 @@ from .models import Profile
 
 @receiver(pre_save, sender=Profile)
 def profile_pre_save(sender, instance, *args, **kwargs):
-    portfolio = Album.objects.create(name="Portfolio", creator=instance.owner, is_public=True)
-    instance.portfolio = portfolio
+    if instance._state.adding:
+        portfolio = Album.objects.create(name="Portfolio", creator=instance.owner, is_public=True)
+        instance.portfolio = portfolio
 
 
 @receiver(post_save, sender=Profile)
-def profile_post_save(sender, instance, *args, **kwargs):
-    user = instance.owner
-    user.is_vendor = True
-    user.save()
+def profile_post_save(sender, instance, created, *args, **kwargs):
+    if created == True:
+        user = instance.owner
+        user.is_vendor = True
+        user.save()

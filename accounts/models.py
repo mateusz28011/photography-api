@@ -60,6 +60,6 @@ class Profile(models.Model):
         upload_to=user_directory_path, default="default/avatar.png", blank=True, validators=[validate_image]
     )
     description = models.TextField()
-    # bank_transfer = models.TextField()
+    payment_info = models.TextField()
     portfolio = models.OneToOneField("album.Album", on_delete=models.PROTECT, blank=True)
     owner = models.OneToOneField(User, on_delete=models.CASCADE)

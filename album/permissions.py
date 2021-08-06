@@ -35,7 +35,7 @@ class CanCreate(permissions.BasePermission):
 
 class IsCreatorOrHasAccess(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
-        if obj.album.is_public == True:
+        if obj.is_public == True:
             return True
         if request.user == obj.creator:
             return True
@@ -47,5 +47,4 @@ class IsCreatorOrHasAccess(permissions.BasePermission):
 
 class IsCreator(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
-
         return request.user == obj.creator

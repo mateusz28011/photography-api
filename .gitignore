@@ -111,3 +111,6 @@ static_collected
 
 # Files
 protected/
+!media/default
+media/*
+test_data/

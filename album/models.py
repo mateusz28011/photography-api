@@ -5,7 +5,7 @@ from django.core.files.storage import FileSystemStorage
 from django.db import models
 from django.utils import timezone
 
-upload_storage = FileSystemStorage(location=settings.SENDFILE_ROOT, base_url="/protected")
+upload_storage = FileSystemStorage(location=settings.SENDFILE_ROOT, base_url=settings.SENDFILE_URL)
 
 
 def user_directory_path(instance, filename):
@@ -26,10 +26,7 @@ class Image(models.Model):
     image = models.ImageField(
         upload_to=user_directory_path, storage=upload_storage, height_field="height", width_field="width"
     )
-    # image = models.ImageField(upload_to=user_directory_path, height_field="height", width_field="width")
-    # title = models.CharField(max_length=250)
-    # alt = models.TextField(null=True)
-    # slug = models.SlugField(max_length=250, unique_for_date="created")
+    title = models.CharField(max_length=100)
     created = models.DateTimeField(default=timezone.now)
     author = models.ForeignKey(User, on_delete=models.PROTECT)
     album = models.ForeignKey(Album, on_delete=models.CASCADE)

@@ -19,7 +19,12 @@ from album.permissions import (
 )
 
 from .models import Album, Image
-from .serializers import AlbumCreateSerializer, AlbumSerializer, ImageUploadSerializer
+from .serializers import (
+    AlbumCreateUpdateSerializer,
+    AlbumSerializer,
+    ImageUpdateSerializer,
+    ImageUploadSerializer,
+)
 
 
 class AlbumViewset(
@@ -27,22 +32,35 @@ class AlbumViewset(
 ):
     queryset = Album.objects.all()
     serializer_class = AlbumSerializer
-    create_serializer_class = AlbumCreateSerializer
+    create_update_serializer_class = AlbumCreateUpdateSerializer
 
     def get_serializer_class(self):
-        if self.action == "create":
-            if hasattr(self, "create_serializer_class"):
-                return self.create_serializer_class
+        if self.action == "create" or self.action == "partial_update":
+            if hasattr(self, "create_update_serializer_class"):
+                return self.create_update_serializer_class
         return self.serializer_class
 
     def get_permissions(self):
         if self.action == "create":
             permission_classes = [IsAuthenticated & CanCreate]
+        elif self.action == "partial_update":
+            permission_classes = [IsAuthenticated & CanCreate & IsCreator]
         elif self.action == "retrieve":
             permission_classes = [IsCreatorOrHasAccess]
         else:
             permission_classes = [IsCreator]
         return [permission() for permission in permission_classes]
+
+    def partial_update(self, request, pk, *args, **kwargs):
+        if "parent_album" in request.data:
+            if request.data["parent_album"] == pk:
+                raise ValidationError({"parent_album": "Cannot be itself."})
+
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
 
     def perform_create(self, serializer):
         serializer.validated_data["creator"] = self.request.user
@@ -116,13 +134,27 @@ class ImageViewset(
 ):
     queryset = Image.objects.all()
     serializer_class = ImageUploadSerializer
+    update_serializer_class = ImageUpdateSerializer
 
     def get_permissions(self):
-        if self.action == "delete":
+        if self.action in ["destroy", "partial_update"]:
             permission_classes = [IsAuthor]
         else:
             permission_classes = [IsAuthorOrHasAccess]
         return [permission() for permission in permission_classes]
+
+    def get_serializer_class(self):
+        if self.action == "partial_update":
+            if hasattr(self, "update_serializer_class"):
+                return self.update_serializer_class
+        return self.serializer_class
+
+    def partial_update(self, request, album_pk, pk, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
 
     def create(self, request, album_pk, *args, **kwargs):
         serializer = ImageUploadSerializer(data=request.data)
@@ -132,17 +164,17 @@ class ImageViewset(
         except:
             raise NotFound({"album_pk": "No album matches the given album number."})
 
-        serializer.context["album"] = album
-        serializer.is_valid(raise_exception=True)
-
         is_allowed = IsCreator().has_object_permission(request, self, album)
         if is_allowed == False:
             raise PermissionDenied()
 
+        serializer.is_valid(raise_exception=True)
+        serializer.validated_data["author"] = album.creator
+        serializer.validated_data["album"] = album
         image = serializer.save()
 
         image_url = reverse("album-images-detail", args=[album.id, image.id], request=request)
-        return Response({"image": image_url}, status.HTTP_201_CREATED)
+        return Response({"id": image.id, "image": image_url}, status.HTTP_201_CREATED)
 
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()

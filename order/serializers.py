@@ -1,5 +1,6 @@
 from accounts.serializers import UserSerializer
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
 
 from .models import Note, Order
 
@@ -12,14 +13,18 @@ class NoteSerializer(serializers.ModelSerializer):
 
 
 class OrderSerializer(serializers.ModelSerializer):
+    status_display = serializers.CharField(source="get_status_display")
+
     class Meta:
         model = Order
-        fields = ["id", "vendor", "client", "description"]
+        fields = ["id", "vendor", "client", "description", "status", "status_display"]
         extra_kwargs = {"vendor": {"required": True}}
 
     def validate(self, attrs):
-        instance = Order(**attrs)
-        instance.clean()
+        if attrs["vendor"] == attrs["client"]:
+            raise ValidationError({"vendor": "Vendor and client can not be equal."})
+        if attrs["vendor"].is_vendor == False:
+            raise ValidationError({"vendor": "This user is not vendor."})
         return attrs
 
 
@@ -30,7 +35,7 @@ class OrderNestedSerializer(OrderSerializer):
     # notes = NoteSerializer(read_only=True, many=True)
 
     class Meta(OrderSerializer.Meta):
-        fields = OrderSerializer.Meta.fields + ["notes"]
+        fields = OrderSerializer.Meta.fields + ["notes", "cost", "currency"]
 
     def get_notes(self, obj):
         notes = obj.note_set.all()
