@@ -9,6 +9,10 @@ profile_list_url = reverse("profile-list")
 order_list_url = reverse("order-list")
 
 
+def profile_detail_url(pk):
+    return reverse("profile-detail", kwargs={"pk": pk})
+
+
 def order_detail_url(pk):
     return reverse("order-detail", kwargs={"pk": pk})
 

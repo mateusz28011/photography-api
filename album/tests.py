@@ -208,9 +208,8 @@ class TestAlbumImageViewSet(APITestCase):
     data = {"name": "NAME"}
 
     def setUp(self):
-        self.user = User.objects.create_user(email="test@test.com", password="123")
+        self.user = create_user(email="test@test.com", is_vendor=True)
         self.client.force_authenticate(user=self.user)
-        self.user.is_vendor = True
         response = self.client.post(album_list_url, self.data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.album_id = response.json()["id"]
@@ -223,7 +222,7 @@ class TestAlbumImageViewSet(APITestCase):
         super().tearDownClass()
         try:
             shutil.rmtree(TEST_DIR)
-        except OSError as err:
+        except OSError:
             pass
 
     def test_album_image_public_access(self):
