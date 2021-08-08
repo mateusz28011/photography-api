@@ -12,7 +12,7 @@ from rest_framework.test import APITestCase
 
 
 class TestProfileViewset(APITestCase):
-    data = data = {"description": "DESC", "name": "NAME", "payment_info": "INFORMATION"}
+    data = {"description": "DESC", "name": "NAME", "payment_info": "INFORMATION"}
 
     def setUp(self):
         self.user = create_user(email="test@test.com")

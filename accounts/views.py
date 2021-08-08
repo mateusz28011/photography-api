@@ -13,18 +13,15 @@ class ProfileViewSet(
     mixins.RetrieveModelMixin,
     mixins.ListModelMixin,
     mixins.UpdateModelMixin,
-    mixins.CreateModelMixin,
     viewsets.GenericViewSet,
 ):
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
-    retrieve_list_serializer_class = ProfileNestedSerializer
     permission_classes = [IsAuthenticated]
 
     def get_serializer_class(self):
         if self.action == "retrieve" or self.action == "list":
-            if hasattr(self, "retrieve_list_serializer_class"):
-                return self.retrieve_list_serializer_class
+            return ProfileNestedSerializer
         return self.serializer_class
 
     def get_permissions(self):
@@ -43,7 +40,7 @@ class ProfileViewSet(
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.validated_data["owner"] = request.user
-        self.perform_create(serializer)
+        serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def update(self, request, *args, **kwargs):

@@ -13,19 +13,15 @@ from .serializers import (
 )
 
 
-class OrderViewSet(mixins.RetrieveModelMixin, mixins.ListModelMixin, mixins.CreateModelMixin, viewsets.GenericViewSet):
+class OrderViewSet(mixins.RetrieveModelMixin, mixins.ListModelMixin, viewsets.GenericViewSet):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
-    retrieve_list_serializer_class = OrderNestedSerializer
-    update_serializer_class = OrderUpdateSerializer
 
     def get_serializer_class(self):
         if self.action in ["retrieve", "list"]:
-            if hasattr(self, "retrieve_list_serializer_class"):
-                return self.retrieve_list_serializer_class
+            return OrderNestedSerializer
         elif self.action == "partial_update":
-            if hasattr(self, "update_serializer_class"):
-                return self.update_serializer_class
+            return OrderUpdateSerializer
         return self.serializer_class
 
     def get_permissions(self):
@@ -61,7 +57,7 @@ class OrderViewSet(mixins.RetrieveModelMixin, mixins.ListModelMixin, mixins.Crea
         return Response(serializer.data)
 
 
-class NoteViewSet(mixins.CreateModelMixin, mixins.UpdateModelMixin, viewsets.GenericViewSet):
+class NoteViewSet(mixins.UpdateModelMixin, viewsets.GenericViewSet):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
     permission_classes = [IsVendorOrClient]
@@ -85,8 +81,7 @@ class NoteViewSet(mixins.CreateModelMixin, mixins.UpdateModelMixin, viewsets.Gen
         order = self.get_object()
         serializer.save(user=request.user, order=order)
 
-        headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def update(self, request, pk, *args, **kwargs):
         # To check order permissions.

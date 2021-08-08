@@ -1,6 +1,5 @@
 from accounts.serializers import UserSerializer
 from album.serializers import AlbumSerializer
-from django.http import request
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
@@ -11,7 +10,7 @@ class NoteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Note
         exclude = ["order"]
-        extra_kwargs = {"created": {"read_only": True}, "user": {"read_only": True}}
+        read_only_fields = ["created", "user"]
 
 
 class OrderSerializer(serializers.ModelSerializer):
@@ -89,7 +88,7 @@ class OrderUpdateSerializer(serializers.ModelSerializer):
 class OrderNestedSerializer(OrderSerializer):
     vendor = UserSerializer(read_only=True)
     client = UserSerializer(read_only=True)
-    notes = serializers.SerializerMethodField()
+    notes = serializers.SerializerMethodField(read_only=True)
     # notes = NoteSerializer(read_only=True, many=True)
 
     class Meta(OrderSerializer.Meta):

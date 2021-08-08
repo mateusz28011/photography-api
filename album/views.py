@@ -22,22 +22,25 @@ from .models import Album, Image
 from .serializers import (
     AlbumCreateUpdateSerializer,
     AlbumSerializer,
+    AlbumSmallSerializer,
     ImageUpdateSerializer,
     ImageUploadSerializer,
 )
 
 
 class AlbumViewset(
-    mixins.CreateModelMixin, mixins.RetrieveModelMixin, mixins.DestroyModelMixin, viewsets.GenericViewSet
+    mixins.CreateModelMixin,
+    mixins.ListModelMixin,
+    viewsets.GenericViewSet,
 ):
     queryset = Album.objects.all()
     serializer_class = AlbumSerializer
-    create_update_serializer_class = AlbumCreateUpdateSerializer
 
     def get_serializer_class(self):
         if self.action == "create" or self.action == "partial_update":
-            if hasattr(self, "create_update_serializer_class"):
-                return self.create_update_serializer_class
+            return AlbumCreateUpdateSerializer
+        elif self.action == "list":
+            return AlbumSmallSerializer
         return self.serializer_class
 
     def get_permissions(self):
@@ -71,9 +74,16 @@ class AlbumViewset(
         serializer = AlbumSerializer(instance, context={"request": request})
         return Response(serializer.data)
 
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        try:
+            instance.delete()
+        except:
+            raise ValidationError({"detail": "Cannot delete this album!"})
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
-class AllowedUsersViewSet(viewsets.GenericViewSet):
-    queryset = Album.objects.all()
+
+class AllowedUsersViewSet(viewsets.ViewSet):
     permission_classes = [IsCreator]
 
     def validate(self, user, album, request):
@@ -114,9 +124,8 @@ class AllowedUsersViewSet(viewsets.GenericViewSet):
     def get_object(
         self,
     ):
-        queryset = self.filter_queryset(self.get_queryset())
         try:
-            album = queryset.get(pk=self.kwargs["album_pk"])
+            album = Album.objects.get(pk=self.kwargs["album_pk"])
         except:
             raise NotFound({"album_pk": "No album matches the given album number."})
         self.check_object_permissions(self.request, album)
@@ -129,12 +138,25 @@ class AllowedUsersViewSet(viewsets.GenericViewSet):
         return album, user
 
 
-class ImageViewset(
-    mixins.CreateModelMixin, mixins.RetrieveModelMixin, mixins.DestroyModelMixin, viewsets.GenericViewSet
-):
-    queryset = Image.objects.all()
-    serializer_class = ImageUploadSerializer
-    update_serializer_class = ImageUpdateSerializer
+class ImageViewset(viewsets.ViewSet):
+    def get_object(self):
+        try:
+            image = Image.objects.get(pk=self.kwargs["pk"])
+        except:
+            raise NotFound({"pk": "No image matches the given image number."})
+        self.check_object_permissions(self.request, image)
+        return image
+
+    def get_album_object(self):
+        try:
+            album = Album.objects.get(pk=self.kwargs["album_pk"])
+        except:
+            raise NotFound({"album_pk": "No album matches the given album number."})
+
+        is_allowed = IsCreator().has_object_permission(self.request, self, album)
+        if is_allowed == False:
+            raise PermissionDenied()
+        return album
 
     def get_permissions(self):
         if self.action in ["destroy", "partial_update"]:
@@ -143,31 +165,17 @@ class ImageViewset(
             permission_classes = [IsAuthorOrHasAccess]
         return [permission() for permission in permission_classes]
 
-    def get_serializer_class(self):
-        if self.action == "partial_update":
-            if hasattr(self, "update_serializer_class"):
-                return self.update_serializer_class
-        return self.serializer_class
-
     def partial_update(self, request, *args, **kwargs):
         instance = self.get_object()
-        serializer = self.get_serializer(instance, data=request.data, partial=True)
+        serializer = ImageUpdateSerializer(instance, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)
 
-    def create(self, request, album_pk, *args, **kwargs):
+    def create(self, request, *args, **kwargs):
+        album = self.get_album_object()
+
         serializer = ImageUploadSerializer(data=request.data)
-
-        try:
-            album = Album.objects.get(pk=album_pk)
-        except:
-            raise NotFound({"album_pk": "No album matches the given album number."})
-
-        is_allowed = IsCreator().has_object_permission(request, self, album)
-        if is_allowed == False:
-            raise PermissionDenied()
-
         serializer.is_valid(raise_exception=True)
         serializer.validated_data["author"] = album.creator
         serializer.validated_data["album"] = album
@@ -180,3 +188,8 @@ class ImageViewset(
         instance = self.get_object()
         path = os.path.normpath(BASE_DIR.__str__() + instance.image.url)
         return sendfile(request, path)
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)

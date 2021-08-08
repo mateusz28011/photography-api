@@ -10,6 +10,7 @@ from core.tests_utils import (
     album_list_url,
     create_user,
     generate_photo_file,
+    profile_list_url,
 )
 from rest_framework import status
 from rest_framework.test import APITestCase
@@ -93,6 +94,14 @@ class TestAlbumViewSetCreateDestroy(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         response = self.client.delete(album_detail_url(child_album_id))
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_album_destroy_portfolio(self):
+        data = {"description": "DESC", "name": "NAME", "payment_info": "INFORMATION"}
+        response = self.client.post(profile_list_url, data)
+        portfolio_id = response.json()["portfolio"]
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        response = self.client.delete(album_detail_url(portfolio_id))
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 
 class TestAlbumViewSetUpdate(APITestCase):

@@ -1,10 +1,10 @@
-from djoser.serializers import UserCreateSerializer
+from djoser.serializers import UserCreateSerializer, UserSerializer
 from rest_framework import serializers
 
 from .models import Profile, User
 
 
-class UserSerializer(UserCreateSerializer):
+class UserCreateSerializer(UserCreateSerializer):
     class Meta(UserCreateSerializer.Meta):
         model = User
         fields = [
@@ -13,6 +13,22 @@ class UserSerializer(UserCreateSerializer):
             "password",
             "first_name",
             "last_name",
+        ]
+
+
+class UserSerializer(UserSerializer):
+    class Meta(UserSerializer.Meta):
+        fields = [
+            "id",
+            "email",
+            "first_name",
+            "last_name",
+            "join_date",
+            "is_staff",
+            "is_vendor",
+        ]
+        read_only_fields = [
+            "email",
             "join_date",
             "is_staff",
             "is_vendor",
@@ -29,7 +45,7 @@ class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
         fields = "__all__"
-        extra_kwargs = {"portofilo": {"read_only": True}, "owner": {"read_only": True}}
+        read_only_fields = ["portofilo", "owner"]
 
 
 class ProfileNestedSerializer(ProfileSerializer):

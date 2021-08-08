@@ -11,7 +11,7 @@ class AlbumSmallSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Album
-        fields = ["id", "name", "url"]
+        fields = ["id", "name", "url", "is_public"]
 
     def get_url(self, obj):
         return reverse("album-detail", args=[obj.id], request=self.context["request"])
@@ -33,7 +33,7 @@ class AlbumSerializer(serializers.ModelSerializer):
     class Meta:
         model = Album
         fields = "__all__"
-        extra_kwargs = {"created": {"read_only": True}, "allowed_users": {"read_only": True}}
+        read_only_fields = ["created", "allowed_users"]
 
     def get_images(self, obj):
         images = obj.image_set.all()

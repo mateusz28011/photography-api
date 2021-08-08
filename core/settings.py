@@ -59,6 +59,7 @@ INSTALLED_APPS = [
     "order",
     "album",
     "django_sendfile",
+    "drf_yasg",
 ]
 
 MIDDLEWARE = [
@@ -204,12 +205,16 @@ DJOSER = {
     # "ACTIVATION_URL": "activate/{uid}/{token}",
     # "SEND_ACTIVATION_EMAIL": True,
     "SERIALIZERS": {
-        "user_create": "accounts.serializers.UserSerializer",
+        "user_create": "accounts.serializers.UserCreateSerializer",
         "user": "accounts.serializers.UserSerializer",
         "current_user": "accounts.serializers.UserSerializer",
-        "user_delete": "djoser.serializers.UserDeleteSerializer",
+        # "user_delete": "djoser.serializers.UserDeleteSerializer",
     },
     "PERMISSIONS": {
         "user": ["rest_framework.permissions.AllowAny"],
     },
+}
+
+SWAGGER_SETTINGS = {
+    "SECURITY_DEFINITIONS": {"api_key": {"type": "apiKey", "in": "header", "name": "Authorization"}},
 }
