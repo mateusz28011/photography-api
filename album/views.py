@@ -149,7 +149,7 @@ class ImageViewset(
                 return self.update_serializer_class
         return self.serializer_class
 
-    def partial_update(self, request, album_pk, pk, *args, **kwargs):
+    def partial_update(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = self.get_serializer(instance, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)

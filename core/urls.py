@@ -57,4 +57,4 @@ urlpatterns = (
     )
 )
 
-print(images_router.urls)
+print(notes_router.urls)

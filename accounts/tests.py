@@ -1,9 +1,7 @@
-import os
 import shutil
-from io import BytesIO
 
 from core.settings import TEST_DIR
-from PIL import Image
+from core.tests_utils import generate_photo_file, profile_list_url
 from rest_framework import status
 from rest_framework.reverse import reverse
 from rest_framework.test import APITestCase
@@ -11,17 +9,8 @@ from rest_framework.test import APITestCase
 from .models import User
 
 
-def generate_photo_file(x=100, y=100):
-    file = BytesIO()
-    image = Image.new("RGBA", size=(x, y), color=(155, 0, 0))
-    image.save(file, "png")
-    file.name = "test.png"
-    file.seek(0)
-    return file
-
-
 class TestProfileViewset(APITestCase):
-    profile_url = reverse("profile-list")
+    
 
     def setUp(self):
         self.user = User.objects.create_user(email="test@test.com", password="123")
@@ -43,35 +32,35 @@ class TestProfileViewset(APITestCase):
     def test_profile_create_unauthenticated(self):
         self.client.force_authenticate(user=None)
         data = {"description": "DESC", "name": "NAME", "payment_info": "INFORMATION"}
-        response = self.client.post(self.profile_url, data)
+        response = self.client.post(profile_list_url, data)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_profile_create(self):
         data = {"description": "DESC", "name": "NAME", "payment_info": "INFORMATION"}
-        response = self.client.post(self.profile_url, data)
+        response = self.client.post(profile_list_url, data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_profile_create_with_avatar(self):
         image = generate_photo_file()
         data = {"description": "DESC", "name": "NAME", "payment_info": "INFORMATION", "avatar": image}
-        response = self.client.post(self.profile_url, data)
+        response = self.client.post(profile_list_url, data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_profile_create_with_too_big_avatar(self):
         image = generate_photo_file(x=600)
         data = {"description": "DESC", "name": "NAME", "payment_info": "INFORMATION", "avatar": image}
-        response = self.client.post(self.profile_url, data)
+        response = self.client.post(profile_list_url, data)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_profile_create_has_profile(self):
         self.test_profile_create()
         data = {"description": "DESC", "name": "NAME", "payment_info": "INFORMATION"}
-        response = self.client.post(self.profile_url, data)
+        response = self.client.post(profile_list_url, data)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_profile_put(self):
         data = {"description": "DESC", "name": "NAME", "payment_info": "INFORMATION"}
-        response = self.client.post(self.profile_url, data)
+        response = self.client.post(profile_list_url, data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         profile_id = response.json()["id"]
         data = {"description": "DESC", "name": "NAME", "payment_info": "INFORMATION"}
@@ -83,7 +72,7 @@ class TestProfileViewset(APITestCase):
 
     def test_profile_patch(self):
         data = {"description": "DESC", "name": "NAME", "payment_info": "INFORMATION"}
-        response = self.client.post(self.profile_url, data)
+        response = self.client.post(profile_list_url, data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         profile_id = response.json()["id"]
         data = {"description": "DESC", "name": "NAME"}
@@ -100,7 +89,7 @@ class TestProfileViewset(APITestCase):
 
     def test_profile_patch_unauthenticated(self):
         data = {"description": "DESC", "name": "NAME", "payment_info": "INFORMATION"}
-        response = self.client.post(self.profile_url, data)
+        response = self.client.post(profile_list_url, data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         profile_id = response.json()["id"]
         data = {"description": "DESC", "name": "NAME"}
@@ -110,7 +99,7 @@ class TestProfileViewset(APITestCase):
 
     def test_profile_put_unauthenticated(self):
         data = {"description": "DESC", "name": "NAME", "payment_info": "INFORMATION"}
-        response = self.client.post(self.profile_url, data)
+        response = self.client.post(profile_list_url, data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         profile_id = response.json()["id"]
         data = {"description": "DESC", "name": "NAME", "payment_info": "INFORMATION"}
@@ -120,7 +109,7 @@ class TestProfileViewset(APITestCase):
 
     def test_profile_retrieve(self):
         data = {"description": "DESC", "name": "NAME", "payment_info": "INFORMATION"}
-        response = self.client.post(self.profile_url, data)
+        response = self.client.post(profile_list_url, data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         profile_id = response.json()["id"]
         response = self.client.get(reverse("profile-detail", kwargs={"pk": profile_id}))
@@ -131,15 +120,15 @@ class TestProfileViewset(APITestCase):
 
     def test_profile_list(self):
         self.test_profile_create()
-        response = self.client.get(self.profile_url)
+        response = self.client.get(profile_list_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.client.force_authenticate(user=None)
-        response = self.client.get(self.profile_url)
+        response = self.client.get(profile_list_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_profile_put_other_user(self):
         data = {"description": "DESC", "name": "NAME", "payment_info": "INFORMATION"}
-        response = self.client.post(self.profile_url, data)
+        response = self.client.post(profile_list_url, data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         profile_id = response.json()["id"]
         self.client.force_authenticate(user=User.objects.create_user(email="test2@test.com", password="123"))
@@ -149,7 +138,7 @@ class TestProfileViewset(APITestCase):
 
     def test_profile_patch_other_user(self):
         data = {"description": "DESC", "name": "NAME", "payment_info": "INFORMATION"}
-        response = self.client.post(self.profile_url, data)
+        response = self.client.post(profile_list_url, data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         profile_id = response.json()["id"]
         self.client.force_authenticate(user=User.objects.create_user(email="test2@test.com", password="123"))

@@ -7,16 +7,17 @@ from rest_framework.serializers import ValidationError
 
 class Order(models.Model):
     CURRENCIES = [("PLN", "Polish Zloty"), ("EUR", "Euro"), ("USD", "United States Dollar")]
-    STATUSES = [
-        ("0", "Canceled"),
-        ("1", "Waiting for acceptance"),
-        ("2", "Accepted"),
-        ("3", "Waiting for payment"),
-        ("4", "Payment received"),
-        ("5", "Finished"),
-    ]
+    STATUSES = (
+        (0, "Canceled"),
+        (1, "Rejected"),
+        (2, "Waiting for acceptance"),
+        (3, "Accepted"),
+        (4, "Waiting for payment"),
+        (5, "Payment received"),
+        (6, "Finished"),
+    )
     description = models.TextField()
-    status = models.CharField(max_length=1, choices=STATUSES, default=1)
+    status = models.PositiveSmallIntegerField(choices=STATUSES, default=2)
     cost = models.FloatField(null=True, blank=True)
     currency = models.CharField(max_length=3, choices=CURRENCIES, default="EUR")
     vendor = models.ForeignKey(User, related_name="vendor", on_delete=models.PROTECT)
