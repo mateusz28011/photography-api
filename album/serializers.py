@@ -8,10 +8,11 @@ from .models import Album, Image
 
 class AlbumSmallSerializer(serializers.ModelSerializer):
     url = serializers.SerializerMethodField()
+    creator = UserBasicInfoSerializer(read_only=True)
 
     class Meta:
         model = Album
-        fields = ["id", "name", "url", "is_public"]
+        fields = ["id", "creator", "name", "url", "is_public"]
 
     def get_url(self, obj):
         return reverse("album-detail", args=[obj.id], request=self.context["request"])

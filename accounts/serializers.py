@@ -45,7 +45,17 @@ class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
         fields = "__all__"
-        read_only_fields = ["portofilo", "owner"]
+        extra_kwargs = {
+            "portfolio": {"read_only": True},
+            "owner": {"read_only": True},
+            "avatar": {"read_only": False},
+        }
+
+
+class ProfileListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Profile
+        exclude = ["payment_info", "portfolio", "owner"]
 
 
 class ProfileNestedSerializer(ProfileSerializer):

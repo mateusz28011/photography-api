@@ -13,7 +13,7 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from accounts.views import ProfileViewSet
+from accounts.views import ProfileViewSet, UserActivationView
 from album.views import AlbumViewset, AllowedUsersViewSet, ImageViewset
 from django.conf import settings
 from django.conf.urls import include
@@ -28,12 +28,19 @@ from rest_framework_nested import routers
 
 schema_view = get_schema_view(
     openapi.Info(
-        title="Snippets API",
+        title="Phorography API",
         default_version="v1",
-        description="Test description",
+        description="""
+        #### How to start?
+        1. Create your account through **_POST /auth/users_**.
+        2. Activate your account by clicking link sent to your e-mail.
+        3. Create your access token through **_POST /auth/jwt/create_**.
+        4. Authorize yourself by clicking green button below. In value field paste your token as **_JWT \{token\}_**.
+        5. Now you can use API!
+        """,
         terms_of_service="https://www.google.com/policies/terms/",
-        contact=openapi.Contact(email="contact@snippets.local"),
-        license=openapi.License(name="BSD License"),
+        contact=openapi.Contact(email="mathew28011@gmail.com"),
+        license=openapi.License(name="MIT License"),
     ),
     public=True,
     permission_classes=[permissions.AllowAny],
@@ -62,6 +69,7 @@ urlpatterns = (
         path("auth/", include("djoser.urls.jwt")),
         # path("auth/", include("djoser.urls.authtoken")),
         path("", schema_view.with_ui("swagger", cache_timeout=0), name="schema-swagger-ui"),
+        path("auth/activate/<str:uid>/<str:token>/", UserActivationView.as_view()),
     ]
     + router.urls
     + notes_router.urls
@@ -72,5 +80,6 @@ urlpatterns = (
         document_root=settings.MEDIA_ROOT,
     )
 )
+# from djoser import urls
 
-print(images_router.urls)
+# print(urls.__dict__)

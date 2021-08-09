@@ -21,7 +21,7 @@ class Order(models.Model):
     cost = models.FloatField(null=True, blank=True)
     currency = models.CharField(max_length=3, choices=CURRENCIES, default="EUR")
     vendor = models.ForeignKey(User, related_name="vendor", on_delete=models.PROTECT)
-    client = models.ForeignKey(User, related_name="client", on_delete=models.PROTECT)
+    client = models.ForeignKey(User, related_name="client", on_delete=models.PROTECT, blank=True)
     album = models.ForeignKey(Album, on_delete=models.SET_NULL, null=True, blank=True)
 
 

@@ -1,5 +1,6 @@
 from accounts.serializers import UserSerializer
 from album.serializers import AlbumSerializer
+from drf_yasg.utils import swagger_serializer_method
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
@@ -13,17 +14,14 @@ class NoteSerializer(serializers.ModelSerializer):
         read_only_fields = ["created", "user"]
 
 
-class OrderSerializer(serializers.ModelSerializer):
-    status_display = serializers.CharField(source="get_status_display", read_only=True)
-    album = AlbumSerializer(read_only=True)
-
+class OrderCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
-        fields = ["id", "vendor", "client", "description", "status", "status_display", "album"]
-        extra_kwargs = {"vendor": {"required": True}}
+        fields = ["id", "vendor", "client", "description"]
+        extra_kwargs = {"vendor": {"required": True}, "client": {"read_only": True}}
 
     def validate(self, attrs):
-        if attrs["vendor"] == attrs["client"]:
+        if attrs["vendor"] == self.context["request"].user.id:
             raise ValidationError({"vendor": "Vendor and client can not be equal."})
         if attrs["vendor"].is_vendor == False:
             raise ValidationError({"vendor": "This user is not vendor."})
@@ -85,15 +83,34 @@ class OrderUpdateSerializer(serializers.ModelSerializer):
         return attrs
 
 
-class OrderNestedSerializer(OrderSerializer):
+class OrderNestedSerializer(serializers.ModelSerializer):
     vendor = UserSerializer(read_only=True)
     client = UserSerializer(read_only=True)
     notes = serializers.SerializerMethodField(read_only=True)
-    # notes = NoteSerializer(read_only=True, many=True)
+    album = AlbumSerializer(read_only=True)
+    status_display = serializers.CharField(source="get_status_display", read_only=True)
+    payment_info = serializers.SerializerMethodField(read_only=True)
 
-    class Meta(OrderSerializer.Meta):
-        fields = OrderSerializer.Meta.fields + ["notes", "cost", "currency"]
+    class Meta:
+        model = Order
+        fields = "__all__"
 
+    @swagger_serializer_method(serializer_or_field=NoteSerializer)
     def get_notes(self, obj):
         notes = obj.note_set.all()
         return NoteSerializer(notes, many=True).data
+
+    def get_payment_info(self, obj):
+        try:
+            payment_info = obj.vendor.profile.payment_info
+        except:
+            return None
+        return payment_info
+
+
+class OrderListSerializer(serializers.ModelSerializer):
+    status_display = serializers.CharField(source="get_status_display", read_only=True)
+
+    class Meta:
+        model = Order
+        exclude = ["album", "status"]

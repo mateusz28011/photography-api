@@ -2,7 +2,9 @@ import os
 
 from accounts.models import User
 from core.settings import BASE_DIR
+from django.utils.decorators import method_decorator
 from django_sendfile import sendfile
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound, PermissionDenied, ValidationError
@@ -28,6 +30,12 @@ from .serializers import (
 )
 
 
+@method_decorator(
+    name="create",
+    decorator=swagger_auto_schema(
+        operation_description="To create an album, a user must first create a profile.\nThe album is public by default."
+    ),
+)
 class AlbumViewset(
     mixins.CreateModelMixin,
     mixins.ListModelMixin,
@@ -48,7 +56,7 @@ class AlbumViewset(
             permission_classes = [IsAuthenticated & CanCreate]
         elif self.action == "partial_update":
             permission_classes = [IsAuthenticated & CanCreate & IsCreator]
-        elif self.action == "retrieve":
+        elif self.action in ["retrieve", "list"]:
             permission_classes = [IsCreatorOrHasAccess]
         else:
             permission_classes = [IsCreator]
@@ -101,6 +109,7 @@ class AllowedUsersViewSet(viewsets.ViewSet):
         if request.method == "DELETE" and isFound == False:
             raise ValidationError({"detail": "The specified user has no access."})
 
+    @swagger_auto_schema(operation_description="Giving any user rights to view the album.\n**\{id\}** is user's id. ")
     def update(self, request, *args, **kwargs):
         album, user = self.get_object()
 
@@ -111,6 +120,9 @@ class AllowedUsersViewSet(viewsets.ViewSet):
 
         return Response({"detail": f"The user {user.email} has been granted access."})
 
+    @swagger_auto_schema(
+        operation_description="Take away any user the rights to view the album.\n**\{id\}** is user's id. "
+    )
     def destroy(self, request, pk, *args, **kwargs):
         album, user = self.get_object()
 
@@ -165,6 +177,10 @@ class ImageViewset(viewsets.ViewSet):
             permission_classes = [IsAuthorOrHasAccess]
         return [permission() for permission in permission_classes]
 
+    @swagger_auto_schema(
+        operation_description="Updating image in specified album by image's **\{id\}**.",
+        request_body=ImageUpdateSerializer,
+    )
     def partial_update(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = ImageUpdateSerializer(instance, data=request.data, partial=True)
@@ -172,6 +188,7 @@ class ImageViewset(viewsets.ViewSet):
         serializer.save()
         return Response(serializer.data)
 
+    @swagger_auto_schema(operation_description="Adding image to specified album.")
     def create(self, request, *args, **kwargs):
         album = self.get_album_object()
 
@@ -184,11 +201,15 @@ class ImageViewset(viewsets.ViewSet):
         image_url = reverse("album-images-detail", args=[album.id, image.id], request=request)
         return Response({"id": image.id, "image": image_url}, status.HTTP_201_CREATED)
 
+    @swagger_auto_schema(operation_description="Getting image from specified album by image's **\{id\}**.")
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
         path = os.path.normpath(BASE_DIR.__str__() + instance.image.url)
         return sendfile(request, path)
 
+    @swagger_auto_schema(
+        operation_description="Deleting image in specified album by image's **\{id\}**.",
+    )
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
         instance.delete()

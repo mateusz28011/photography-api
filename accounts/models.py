@@ -57,7 +57,7 @@ def user_directory_path(instance, filename):
 class Profile(models.Model):
     name = models.CharField(max_length=100)
     avatar = models.ImageField(
-        upload_to=user_directory_path, default="default/avatar.png", blank=True, validators=[validate_image]
+        upload_to=user_directory_path, default="default/avatar.png", validators=[validate_image]
     )
     description = models.TextField()
     payment_info = models.TextField()

@@ -197,13 +197,13 @@ DJOSER = {
     "USER_CREATE_PASSWORD_RETYPE": True,
     "USERNAME_CHANGED_EMAIL_CONFIRMATION": True,
     "PASSWORD_CHANGED_EMAIL_CONFIRMATION": True,
-    # "SEND_CONFIRMATION_EMAIL": True,
+    "SEND_CONFIRMATION_EMAIL": True,
     "SET_USERNAME_RETYPE": True,
     "SET_PASSWORD_RETYPE": True,
     "PASSWORD_RESET_CONFIRM_URL": "password/reset/confirm/{uid}/{token}",
     "USERNAME_RESET_CONFIRM_URL": "username/reset/confirm/{uid}/{token}",
-    # "ACTIVATION_URL": "activate/{uid}/{token}",
-    # "SEND_ACTIVATION_EMAIL": True,
+    "ACTIVATION_URL": "auth/activate/{uid}/{token}",
+    "SEND_ACTIVATION_EMAIL": True,
     "SERIALIZERS": {
         "user_create": "accounts.serializers.UserCreateSerializer",
         "user": "accounts.serializers.UserSerializer",
@@ -217,4 +217,7 @@ DJOSER = {
 
 SWAGGER_SETTINGS = {
     "SECURITY_DEFINITIONS": {"api_key": {"type": "apiKey", "in": "header", "name": "Authorization"}},
+    "USE_SESSION_AUTH": False,
+    "PERSIST_AUTH": True,
+    # "DEFAULT_AUTO_SCHEMA_CLASS": "core.swagger.ReadWriteAutoSchema",
 }

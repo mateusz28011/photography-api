@@ -1,12 +1,29 @@
+import requests
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework import mixins, status, viewsets
 from rest_framework.exceptions import PermissionDenied
+from rest_framework.parsers import JSONParser, MultiPartParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.reverse import reverse
+from rest_framework.views import APIView
 
 from accounts.models import Profile
 from accounts.permissions import IsOwner
 
-from .serializers import ProfileNestedSerializer, ProfileSerializer
+from .serializers import (
+    ProfileListSerializer,
+    ProfileNestedSerializer,
+    ProfileSerializer,
+)
+
+
+class UserActivationView(APIView):
+    def get(self, request, uid, token):
+        post_url = reverse("user-activation", request=request)
+        post_data = {"uid": uid, "token": token}
+        request = requests.post(post_url, data=post_data)
+        return Response(request.text)
 
 
 class ProfileViewSet(
@@ -18,10 +35,13 @@ class ProfileViewSet(
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
     permission_classes = [IsAuthenticated]
+    parser_classes = (MultiPartParser,)
 
     def get_serializer_class(self):
-        if self.action == "retrieve" or self.action == "list":
+        if self.action == "retrieve":
             return ProfileNestedSerializer
+        elif self.action == "list":
+            return ProfileListSerializer
         return self.serializer_class
 
     def get_permissions(self):
@@ -33,6 +53,13 @@ class ProfileViewSet(
             permission_classes = [IsAuthenticated & IsOwner]
         return [permission() for permission in permission_classes]
 
+    @swagger_auto_schema(
+        operation_description="""
+        By creating a profile, the user becomes a vendor.
+        Avatar is restricted to 500x500 px.
+        If it is not set, it is set to the default.
+        """
+    )
     def create(self, request, *args, **kwargs):
         if hasattr(request.user, "profile") == True:
             raise PermissionDenied({"detail": "User already has profile."})
