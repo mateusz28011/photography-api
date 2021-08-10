@@ -48,6 +48,7 @@ class ProfileSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             "portfolio": {"read_only": True},
             "owner": {"read_only": True},
+            "created": {"read_only": True},
             "avatar": {"read_only": False},
         }
 

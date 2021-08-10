@@ -23,6 +23,7 @@ class Order(models.Model):
     vendor = models.ForeignKey(User, related_name="vendor", on_delete=models.PROTECT)
     client = models.ForeignKey(User, related_name="client", on_delete=models.PROTECT, blank=True)
     album = models.ForeignKey(Album, on_delete=models.SET_NULL, null=True, blank=True)
+    created = models.DateTimeField(default=timezone.now)
 
 
 class Note(models.Model):

@@ -17,6 +17,7 @@ class Album(models.Model):
     creator = models.ForeignKey(User, related_name="creator", on_delete=models.PROTECT)
     allowed_users = models.ManyToManyField(User, blank=True)
     parent_album = models.ForeignKey("self", on_delete=models.CASCADE, null=True, blank=True)
+    created = models.DateTimeField(default=timezone.now)
     is_public = models.BooleanField(default=False)
 
 

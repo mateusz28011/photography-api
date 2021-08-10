@@ -1,4 +1,6 @@
 import requests
+from core.utils import SwaggerOrderingFilter, SwaggerSearchFilter
+from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import mixins, status, viewsets
 from rest_framework.exceptions import PermissionDenied
@@ -36,6 +38,10 @@ class ProfileViewSet(
     serializer_class = ProfileSerializer
     permission_classes = [IsAuthenticated]
     parser_classes = (MultiPartParser,)
+    filter_backends = [DjangoFilterBackend, SwaggerOrderingFilter, SwaggerSearchFilter]
+    search_fields = ["name", "description"]
+    ordering_fields = ["name", "created"]
+    ordering = ["name"]
 
     def get_serializer_class(self):
         if self.action == "retrieve":

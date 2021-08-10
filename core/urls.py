@@ -28,7 +28,7 @@ from rest_framework_nested import routers
 
 schema_view = get_schema_view(
     openapi.Info(
-        title="Phorography API",
+        title="Photography API",
         default_version="v1",
         description="""
         #### How to start?
@@ -36,7 +36,7 @@ schema_view = get_schema_view(
         2. Activate your account by clicking link sent to your e-mail.
         3. Create your access token through **_POST /auth/jwt/create_**.
         4. Authorize yourself by clicking green button below. In value field paste your token as **_JWT \{token\}_**.
-        5. Now you can use API!
+        5. Now you are ready to go!
         """,
         terms_of_service="https://www.google.com/policies/terms/",
         contact=openapi.Contact(email="mathew28011@gmail.com"),

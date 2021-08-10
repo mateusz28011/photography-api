@@ -1,3 +1,6 @@
+from core.utils import SwaggerOrderingFilter
+from django.db.models import Q
+from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import mixins, status, viewsets
 from rest_framework.exceptions import NotFound, PermissionDenied
@@ -18,6 +21,13 @@ from .serializers import (
 class OrderViewSet(mixins.RetrieveModelMixin, mixins.ListModelMixin, viewsets.GenericViewSet):
     queryset = Order.objects.all()
     serializer_class = OrderListSerializer
+    filter_backends = [DjangoFilterBackend, SwaggerOrderingFilter]
+    filterset_fields = ["client", "vendor", "status"]
+    ordering_fields = ["created", "status", "cost"]
+    ordering = ["-created"]
+
+    def get_queryset(self):
+        return self.queryset.filter(Q(client=self.request.user.id) | Q(vendor=self.request.user.id))
 
     def get_serializer_class(self):
         if self.action == "partial_update":

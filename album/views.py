@@ -2,11 +2,14 @@ import os
 
 from accounts.models import User
 from core.settings import BASE_DIR
+from core.utils import SwaggerOrderingFilter, SwaggerSearchFilter
+from django.db.models import Q
 from django.utils.decorators import method_decorator
+from django_filters import rest_framework as filters
+from django_filters.rest_framework import DjangoFilterBackend
 from django_sendfile import sendfile
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import mixins, status, viewsets
-from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound, PermissionDenied, ValidationError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -23,11 +26,33 @@ from album.permissions import (
 from .models import Album, Image
 from .serializers import (
     AlbumCreateUpdateSerializer,
+    AlbumListSerializer,
     AlbumSerializer,
-    AlbumSmallSerializer,
     ImageUpdateSerializer,
     ImageUploadSerializer,
 )
+
+
+class AlbumFilter(filters.FilterSet):
+    created = filters.BooleanFilter(field_name="creator", method="filter_created")
+    allowed = filters.BooleanFilter(field_name="allowed_users", method="filter_allowed")
+
+    def filter_created(self, queryset, name, value):
+        lookup = "__".join([name, "exact"])
+        return queryset.filter(**{lookup: self.request.user.id})
+
+    def filter_allowed(self, queryset, name, value):
+        lookup = "__".join([name, "exact"])
+        return queryset.filter(**{lookup: self.request.user.id})
+
+    class Meta:
+        model = Album
+        fields = ["is_public"]
+
+    @property
+    def qs(self):
+        queryset = super().qs
+        return queryset.filter(Q(creator=self.request.user.id) | Q(allowed_users=self.request.user))
 
 
 @method_decorator(
@@ -43,12 +68,17 @@ class AlbumViewset(
 ):
     queryset = Album.objects.all()
     serializer_class = AlbumSerializer
+    filter_backends = [DjangoFilterBackend, SwaggerOrderingFilter, SwaggerSearchFilter]
+    filterset_class = AlbumFilter
+    search_fields = ["name", "creator__first_name", "creator__last_name", "creator__email"]
+    ordering_fields = ["name", "created"]
+    ordering = ["-created"]
 
     def get_serializer_class(self):
         if self.action == "create" or self.action == "partial_update":
             return AlbumCreateUpdateSerializer
         elif self.action == "list":
-            return AlbumSmallSerializer
+            return AlbumListSerializer
         return self.serializer_class
 
     def get_permissions(self):

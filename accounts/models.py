@@ -12,8 +12,6 @@ from rest_framework.exceptions import ValidationError
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, password, **other_fields):
         email = self.normalize_email(email)
-        # if User.objects.filter(email=email).exists():
-        #     raise ValidationError({"email": "Email exists"})
         user = self.model(email=email, **other_fields)
         user.set_password(password)
         user.save()
@@ -55,7 +53,7 @@ def user_directory_path(instance, filename):
 
 
 class Profile(models.Model):
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100, unique=True)
     avatar = models.ImageField(
         upload_to=user_directory_path, default="default/avatar.png", validators=[validate_image]
     )
@@ -63,3 +61,4 @@ class Profile(models.Model):
     payment_info = models.TextField()
     portfolio = models.OneToOneField("album.Album", on_delete=models.PROTECT, blank=True)
     owner = models.OneToOneField(User, on_delete=models.CASCADE)
+    created = models.DateTimeField(default=timezone.now)
