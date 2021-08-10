@@ -52,7 +52,11 @@ class AlbumFilter(filters.FilterSet):
     @property
     def qs(self):
         queryset = super().qs
-        return queryset.filter(Q(creator=self.request.user.id) | Q(allowed_users=self.request.user))
+        user = getattr(self.request, "user", None)
+        if user != None:
+            if user.is_anonymous == False:
+                return queryset.filter(Q(creator=user.id) | Q(allowed_users=user))
+        return queryset
 
 
 @method_decorator(

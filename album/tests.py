@@ -66,11 +66,11 @@ class TestAlbumViewSetCreateDestroy(APITestCase):
         user = create_user()
         self.client.force_authenticate(user=user)
         response = self.client.delete(album_detail_url(album_id))
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         user.is_vendor = True
         self.client.force_authenticate(user=user)
         response = self.client.delete(album_detail_url(album_id))
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_album_create_child_album(self):
         response = self.client.post(album_list_url, self.data)
@@ -187,7 +187,7 @@ class TestAlbumAllowedUsersViewSet(APITestCase):
         user = create_user()
         self.client.force_authenticate(user=user)
         response = self.client.get(album_detail_url(self.album_id))
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         self.client.force_authenticate(user=self.user)
         response = self.client.put(album_add_access_detail_url(self.album_id, user.id))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
