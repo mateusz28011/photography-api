@@ -13,8 +13,9 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from accounts.views import ProfileViewSet, UserActivationView
+from accounts.views import ProfileViewSet
 from album.views import AlbumViewset, AllowedUsersViewSet, ImageViewset
+from dj_rest_auth.registration.views import ConfirmEmailView, VerifyEmailView
 from django.conf import settings
 from django.conf.urls import include
 from django.conf.urls.static import static
@@ -65,11 +66,28 @@ urlpatterns = (
     [
         path("admin/", admin.site.urls),
         # path("user/", include("user.urls")),
-        path("auth/", include("djoser.urls")),
-        path("auth/", include("djoser.urls.jwt")),
-        # path("auth/", include("djoser.urls.authtoken")),
         path("", schema_view.with_ui("swagger", cache_timeout=0), name="schema-swagger-ui"),
-        path("auth/activate/<str:uid>/<str:token>/", UserActivationView.as_view()),
+        path("dj-rest-auth/", include("dj_rest_auth.urls")),
+        path(
+            "dj-rest-auth/registration/account-confirm-email/<str:key>/",
+            ConfirmEmailView.as_view(),
+        ),
+        path("dj-rest-auth/registration/", include("dj_rest_auth.registration.urls")),
+        path(
+            "dj-rest-auth/account-confirm-email/",
+            VerifyEmailView.as_view(),
+            name="account_email_verification_sent",
+        ),
+        # path(
+        #     "dj-rest-auth/account-confirm-email/<str:key>/",
+        #     VerifyEmailView.as_view(),
+        #     name="account_email_verification_sent",
+        # ),
+        # path("accounts/", include("allauth.urls")),
+        # path("auth/", include("djoser.urls")),
+        # path("auth/", include("djoser.urls.jwt")),
+        # path("auth/", include("djoser.urls.authtoken")),
+        # path("auth/activate/<str:uid>/<str:token>/", UserActivationView.as_view()),
     ]
     + router.urls
     + notes_router.urls
@@ -82,4 +100,4 @@ urlpatterns = (
 )
 # from djoser import urls
 
-# print(urls.__dict__)
+# print(images_router.urls)

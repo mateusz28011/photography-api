@@ -14,6 +14,7 @@ import os
 from datetime import timedelta
 from pathlib import Path
 
+from django.core.files.storage import FileSystemStorage
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -36,7 +37,7 @@ SECRET_KEY = DJANGO_SECRET_KEY
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-TEST = True
+TEST = False
 TEST_DIR = "test_data"
 
 ALLOWED_HOSTS = []
@@ -52,11 +53,16 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django.contrib.postgres",
+    "corsheaders",
     "rest_framework",
     "rest_framework.authtoken",
-    "corsheaders",
+    "dj_rest_auth",
+    "django.contrib.sites",
+    "allauth",
+    "allauth.account",
+    "dj_rest_auth.registration",
+    "allauth.socialaccount",
     "accounts",
-    "djoser",
     "order",
     "album",
     "django_filters",
@@ -165,6 +171,7 @@ SENDFILE_BACKEND = "django_sendfile.backends.development"
 SENDFILE_ROOT = os.path.join(BASE_DIR, "protected")
 SENDFILE_URL = "/protected/"
 
+
 if TEST:
     MEDIA_ROOT = os.path.join(os.path.join(BASE_DIR, TEST_DIR), "media")
     SENDFILE_ROOT = os.path.join(os.path.join(BASE_DIR, TEST_DIR), "protected")
@@ -175,16 +182,29 @@ if TEST:
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-CORS_ALLOWED_ORIGINS = ["http://127.0.0.1:8000"]
+CLIENT_URL = "http://localhost:3000"
+CORS_ALLOWED_ORIGINS = [CLIENT_URL]
 
 AUTH_USER_MODEL = "accounts.User"
 
 REST_FRAMEWORK = {
     "DEFAULT_FILTER_BACKENDS": ["django_filters.rest_framework.DjangoFilterBackend"],
     "DEFAULT_AUTHENTICATION_CLASSES": [
-        # "rest_framework.authentication.TokenAuthentication",
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
+        # "rest_framework_simplejwt.authentication.JWTAuthentication",
+        "dj_rest_auth.jwt_auth.JWTCookieAuthentication",
     ],
+    "DEFAULT_RENDERER_CLASSES": (
+        "djangorestframework_camel_case.render.CamelCaseJSONRenderer",
+        "djangorestframework_camel_case.render.CamelCaseBrowsableAPIRenderer",
+    ),
+    "DEFAULT_PARSER_CLASSES": (
+        "djangorestframework_camel_case.parser.CamelCaseFormParser",
+        "djangorestframework_camel_case.parser.CamelCaseMultiPartParser",
+        "djangorestframework_camel_case.parser.CamelCaseJSONParser",
+    ),
+    "JSON_UNDERSCOREIZE": {
+        "no_underscore_before_number": True,
+    },
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": 25,
 }
@@ -196,28 +216,28 @@ SIMPLE_JWT = {
     "AUTH_HEADER_TYPES": ("JWT",),
 }
 
-DJOSER = {
-    "LOGIN_FIELD": "email",
-    "USER_CREATE_PASSWORD_RETYPE": True,
-    "USERNAME_CHANGED_EMAIL_CONFIRMATION": True,
-    "PASSWORD_CHANGED_EMAIL_CONFIRMATION": True,
-    "SEND_CONFIRMATION_EMAIL": True,
-    "SET_USERNAME_RETYPE": True,
-    "SET_PASSWORD_RETYPE": True,
-    "PASSWORD_RESET_CONFIRM_URL": "password/reset/confirm/{uid}/{token}",
-    "USERNAME_RESET_CONFIRM_URL": "username/reset/confirm/{uid}/{token}",
-    "ACTIVATION_URL": "auth/activate/{uid}/{token}",
-    "SEND_ACTIVATION_EMAIL": True,
-    "SERIALIZERS": {
-        "user_create": "accounts.serializers.UserCreateSerializer",
-        "user": "accounts.serializers.UserSerializer",
-        "current_user": "accounts.serializers.UserSerializer",
-        # "user_delete": "djoser.serializers.UserDeleteSerializer",
-    },
-    "PERMISSIONS": {
-        "user": ["rest_framework.permissions.AllowAny"],
-    },
-}
+# DJOSER = {
+#     "LOGIN_FIELD": "email",
+#     "USER_CREATE_PASSWORD_RETYPE": True,
+#     "USERNAME_CHANGED_EMAIL_CONFIRMATION": True,
+#     "PASSWORD_CHANGED_EMAIL_CONFIRMATION": True,
+#     "SEND_CONFIRMATION_EMAIL": True,
+#     "SET_USERNAME_RETYPE": True,
+#     "SET_PASSWORD_RETYPE": True,
+#     "PASSWORD_RESET_CONFIRM_URL": "password/reset/confirm/{uid}/{token}",
+#     "USERNAME_RESET_CONFIRM_URL": "username/reset/confirm/{uid}/{token}",
+#     "ACTIVATION_URL": "auth/activate/{uid}/{token}",
+#     "SEND_ACTIVATION_EMAIL": True,
+#     "SERIALIZERS": {
+#         "user_create": "accounts.serializers.UserCreateSerializer",
+#         "user": "accounts.serializers.UserSerializer",
+#         "current_user": "accounts.serializers.UserSerializer",
+#         # "user_delete": "djoser.serializers.UserDeleteSerializer",
+#     },
+#     "PERMISSIONS": {
+#         "user": ["rest_framework.permissions.AllowAny"],
+#     },
+# }
 
 SWAGGER_SETTINGS = {
     "SECURITY_DEFINITIONS": {"api_key": {"type": "apiKey", "in": "header", "name": "Authorization"}},
@@ -225,3 +245,27 @@ SWAGGER_SETTINGS = {
     "PERSIST_AUTH": True,
     # "DEFAULT_AUTO_SCHEMA_CLASS": "core.swagger.ReadWriteAutoSchema",
 }
+
+
+REST_AUTH_SERIALIZERS = {
+    "USER_DETAILS_SERIALIZER": "accounts.serializers.UserSerializer",
+    "LOGIN_SERIALIZER": "accounts.serializers.CustomLoginSerializer",
+}
+
+REST_AUTH_REGISTER_SERIALIZERS = {
+    "REGISTER_SERIALIZER": "accounts.serializers.CustomRegisterSerializer",
+}
+
+ACCOUNT_USER_MODEL_USERNAME_FIELD = None
+ACCOUNT_AUTHENTICATION_METHOD = "email"
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_UNIQUE_EMAIL = True
+ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_EMAIL_VERIFICATION = "mandatory"
+ACCOUNT_CONFIRM_EMAIL_ON_GET = True
+LOGIN_URL = f"{CLIENT_URL}/login-register"
+
+REST_USE_JWT = True
+JWT_AUTH_COOKIE = "access-token"
+JWT_AUTH_REFRESH_COOKIE = "refresh-token"
+SITE_ID = 1

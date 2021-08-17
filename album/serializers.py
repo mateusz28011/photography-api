@@ -47,6 +47,8 @@ class AlbumSerializer(serializers.ModelSerializer):
 
 class ImageSerializer(serializers.ModelSerializer):
     url = serializers.SerializerMethodField()
+    # image_thumbnail = serializers.ImageField(read_only=True)
+    thumbnail_url = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Image
@@ -56,6 +58,11 @@ class ImageSerializer(serializers.ModelSerializer):
         request = self.context["request"]
         album_id = request.parser_context["kwargs"]["pk"]
         return reverse("album-images-detail", args=[album_id, obj.id], request=request)
+
+    def get_thumbnail_url(self, obj):
+        request = self.context["request"]
+        album_id = request.parser_context["kwargs"]["pk"]
+        return reverse("album-images-thumbnail", args=[album_id, obj.id], request=request)
 
 
 class ImageUploadSerializer(ImageSerializer):

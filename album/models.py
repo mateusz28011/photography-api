@@ -1,9 +1,10 @@
 from accounts.models import User
-from core.settings import BASE_DIR
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
 from django.db import models
 from django.utils import timezone
+from imagekit.models import ImageSpecField
+from imagekit.processors import ResizeToFill
 
 upload_storage = FileSystemStorage(location=settings.SENDFILE_ROOT, base_url=settings.SENDFILE_URL)
 
@@ -25,7 +26,17 @@ class Image(models.Model):
     height = models.PositiveIntegerField(null=True, blank=True)
     width = models.PositiveIntegerField(null=True, blank=True)
     image = models.ImageField(
-        upload_to=user_directory_path, storage=upload_storage, height_field="height", width_field="width"
+        upload_to=user_directory_path,
+        storage=upload_storage,
+        height_field="height",
+        width_field="width",
+    )
+    image_thumbnail = ImageSpecField(
+        source="image",
+        processors=[ResizeToFill(300, 200)],
+        format="JPEG",
+        options={"quality": 80},
+        cachefile_storage=upload_storage,
     )
     title = models.CharField(max_length=100)
     created = models.DateTimeField(default=timezone.now)

@@ -10,6 +10,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from django_sendfile import sendfile
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import mixins, status, viewsets
+from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound, PermissionDenied, ValidationError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -239,6 +240,12 @@ class ImageViewset(viewsets.ViewSet):
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
         path = os.path.normpath(BASE_DIR.__str__() + instance.image.url)
+        return sendfile(request, path)
+
+    @action(detail=True)
+    def thumbnail(self, request, *args, **kwargs):
+        instance = self.get_object()
+        path = os.path.normpath(BASE_DIR.__str__() + instance.image_thumbnail.url)
         return sendfile(request, path)
 
     @swagger_auto_schema(
