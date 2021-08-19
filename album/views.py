@@ -1,9 +1,7 @@
-import os
-
 from accounts.models import User
-from core.settings import BASE_DIR
 from core.utils import SwaggerOrderingFilter, SwaggerSearchFilter
 from django.db.models import Q
+from django.http.response import HttpResponseRedirect
 from django.utils.decorators import method_decorator
 from django_filters import rest_framework as filters
 from django_filters.rest_framework import DjangoFilterBackend
@@ -12,6 +10,7 @@ from drf_yasg.utils import swagger_auto_schema
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound, PermissionDenied, ValidationError
+from rest_framework.parsers import MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
@@ -127,6 +126,7 @@ class AlbumViewset(
 
 
 class AllowedUsersViewSet(viewsets.ViewSet):
+    parser_classes = (MultiPartParser,)
     permission_classes = [IsCreator]
 
     def validate(self, user, album, request):
@@ -186,6 +186,8 @@ class AllowedUsersViewSet(viewsets.ViewSet):
 
 
 class ImageViewset(viewsets.ViewSet):
+    parser_classes = (MultiPartParser,)
+
     def get_object(self):
         try:
             image = Image.objects.get(pk=self.kwargs["pk"])
@@ -223,7 +225,7 @@ class ImageViewset(viewsets.ViewSet):
         serializer.save()
         return Response(serializer.data)
 
-    @swagger_auto_schema(operation_description="Adding image to specified album.")
+    @swagger_auto_schema(operation_description="Adding image to specified album.", request_body=ImageUploadSerializer)
     def create(self, request, *args, **kwargs):
         album = self.get_album_object()
 
@@ -239,14 +241,12 @@ class ImageViewset(viewsets.ViewSet):
     @swagger_auto_schema(operation_description="Getting image from specified album by image's **\{id\}**.")
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
-        path = os.path.normpath(BASE_DIR.__str__() + instance.image.url)
-        return sendfile(request, path)
+        return HttpResponseRedirect(redirect_to=instance.image.url)
 
     @action(detail=True)
     def thumbnail(self, request, *args, **kwargs):
         instance = self.get_object()
-        path = os.path.normpath(BASE_DIR.__str__() + instance.image_thumbnail.url)
-        return sendfile(request, path)
+        return HttpResponseRedirect(redirect_to=instance.image_thumbnail.url)
 
     @swagger_auto_schema(
         operation_description="Deleting image in specified album by image's **\{id\}**.",

@@ -1,8 +1,10 @@
+from core.storage_backends import PublicMediaStorage
 from django.contrib.auth.models import (
     AbstractBaseUser,
     BaseUserManager,
     PermissionsMixin,
 )
+from django.core.files import storage
 from django.core.files.images import get_image_dimensions
 from django.db import models
 from django.utils import timezone
@@ -54,7 +56,10 @@ def user_directory_path(instance, filename):
 class Profile(models.Model):
     name = models.CharField(max_length=100, unique=True)
     avatar = models.ImageField(
-        upload_to=user_directory_path, default="default/avatar.png", validators=[validate_image]
+        upload_to=user_directory_path,
+        storage=PublicMediaStorage,
+        default="default/avatar.jpeg",
+        validators=[validate_image],
     )
     description = models.TextField()
     payment_info = models.TextField()

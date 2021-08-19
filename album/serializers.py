@@ -46,8 +46,7 @@ class AlbumSerializer(serializers.ModelSerializer):
 
 
 class ImageSerializer(serializers.ModelSerializer):
-    url = serializers.SerializerMethodField()
-    # image_thumbnail = serializers.ImageField(read_only=True)
+    url = serializers.SerializerMethodField(read_only=True)
     thumbnail_url = serializers.SerializerMethodField(read_only=True)
 
     class Meta:

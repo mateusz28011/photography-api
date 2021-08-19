@@ -14,7 +14,6 @@ import os
 from datetime import timedelta
 from pathlib import Path
 
-from django.core.files.storage import FileSystemStorage
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -42,6 +41,13 @@ TEST_DIR = "test_data"
 
 ALLOWED_HOSTS = []
 
+CLIENT_URL = "http://localhost:3000"
+CORS_ALLOWED_ORIGINS = [CLIENT_URL]
+# CORS_ORIGIN_ALLOW_ALL = True
+SESSION_COOKIE_SAMESITE = None
+CORS_ALLOW_CREDENTIALS = True
+
+AUTH_USER_MODEL = "accounts.User"
 
 # Application definition
 
@@ -68,6 +74,7 @@ INSTALLED_APPS = [
     "django_filters",
     "django_sendfile",
     "drf_yasg",
+    "storages",
 ]
 
 MIDDLEWARE = [
@@ -182,15 +189,9 @@ if TEST:
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-CLIENT_URL = "http://localhost:3000"
-CORS_ALLOWED_ORIGINS = [CLIENT_URL]
-
-AUTH_USER_MODEL = "accounts.User"
-
 REST_FRAMEWORK = {
     "DEFAULT_FILTER_BACKENDS": ["django_filters.rest_framework.DjangoFilterBackend"],
     "DEFAULT_AUTHENTICATION_CLASSES": [
-        # "rest_framework_simplejwt.authentication.JWTAuthentication",
         "dj_rest_auth.jwt_auth.JWTCookieAuthentication",
     ],
     "DEFAULT_RENDERER_CLASSES": (
@@ -210,40 +211,17 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(days=30),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=15),
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=10),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
     "ROTATE_REFRESH_TOKENS": True,
     "AUTH_HEADER_TYPES": ("JWT",),
 }
 
-# DJOSER = {
-#     "LOGIN_FIELD": "email",
-#     "USER_CREATE_PASSWORD_RETYPE": True,
-#     "USERNAME_CHANGED_EMAIL_CONFIRMATION": True,
-#     "PASSWORD_CHANGED_EMAIL_CONFIRMATION": True,
-#     "SEND_CONFIRMATION_EMAIL": True,
-#     "SET_USERNAME_RETYPE": True,
-#     "SET_PASSWORD_RETYPE": True,
-#     "PASSWORD_RESET_CONFIRM_URL": "password/reset/confirm/{uid}/{token}",
-#     "USERNAME_RESET_CONFIRM_URL": "username/reset/confirm/{uid}/{token}",
-#     "ACTIVATION_URL": "auth/activate/{uid}/{token}",
-#     "SEND_ACTIVATION_EMAIL": True,
-#     "SERIALIZERS": {
-#         "user_create": "accounts.serializers.UserCreateSerializer",
-#         "user": "accounts.serializers.UserSerializer",
-#         "current_user": "accounts.serializers.UserSerializer",
-#         # "user_delete": "djoser.serializers.UserDeleteSerializer",
-#     },
-#     "PERMISSIONS": {
-#         "user": ["rest_framework.permissions.AllowAny"],
-#     },
-# }
 
 SWAGGER_SETTINGS = {
-    "SECURITY_DEFINITIONS": {"api_key": {"type": "apiKey", "in": "header", "name": "Authorization"}},
+    "SECURITY_DEFINITIONS": None,
     "USE_SESSION_AUTH": False,
     "PERSIST_AUTH": True,
-    # "DEFAULT_AUTO_SCHEMA_CLASS": "core.swagger.ReadWriteAutoSchema",
 }
 
 
@@ -265,7 +243,28 @@ ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 ACCOUNT_CONFIRM_EMAIL_ON_GET = True
 LOGIN_URL = f"{CLIENT_URL}/login-register"
 
+REST_SESSION_LOGIN = False
 REST_USE_JWT = True
 JWT_AUTH_COOKIE = "access-token"
 JWT_AUTH_REFRESH_COOKIE = "refresh-token"
 SITE_ID = 1
+
+AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
+AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
+AWS_STORAGE_BUCKET_NAME = "mateusz28011"
+AWS_S3_REGION_NAME = "eu-central-1"
+AWS_S3_OBJECT_PARAMETERS = {"CacheControl": "max-age=86400"}
+
+AWS_S3_FILE_OVERWRITE = False
+AWS_DEFAULT_ACL = None
+
+AWS_STATIC_LOCATION = "static"
+STATICFILES_STORAGE = "core.storage_backends.StaticStorage"
+AWS_PUBLIC_MEDIA_LOCATION = "media/public"
+DEFAULT_FILE_STORAGE = "core.storage_backends.PublicMediaStorage"
+AWS_PRIVATE_MEDIA_LOCATION = "media/private"
+PRIVATE_FILE_STORAGE = "core.storage_backends.PrivateMediaStorage"
+
+IMAGEKIT_DEFAULT_CACHEFILE_STRATEGY = "imagekit.cachefiles.strategies.Optimistic"
+IMAGEKIT_DEFAULT_FILE_STORAGE = "core.storage_backends.PrivateMediaStorage"
+IMAGEKIT_CACHEFILE_DIR = ""

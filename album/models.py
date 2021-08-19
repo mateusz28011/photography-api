@@ -1,12 +1,9 @@
 from accounts.models import User
-from django.conf import settings
-from django.core.files.storage import FileSystemStorage
+from core.storage_backends import PrivateMediaStorage
 from django.db import models
 from django.utils import timezone
 from imagekit.models import ImageSpecField
 from imagekit.processors import ResizeToFill
-
-upload_storage = FileSystemStorage(location=settings.SENDFILE_ROOT, base_url=settings.SENDFILE_URL)
 
 
 def user_directory_path(instance, filename):
@@ -27,7 +24,7 @@ class Image(models.Model):
     width = models.PositiveIntegerField(null=True, blank=True)
     image = models.ImageField(
         upload_to=user_directory_path,
-        storage=upload_storage,
+        storage=PrivateMediaStorage,
         height_field="height",
         width_field="width",
     )
@@ -36,7 +33,6 @@ class Image(models.Model):
         processors=[ResizeToFill(300, 200)],
         format="JPEG",
         options={"quality": 80},
-        cachefile_storage=upload_storage,
     )
     title = models.CharField(max_length=100)
     created = models.DateTimeField(default=timezone.now)
