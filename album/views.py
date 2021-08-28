@@ -49,14 +49,14 @@ class AlbumFilter(filters.FilterSet):
         model = Album
         fields = ["is_public"]
 
-    @property
-    def qs(self):
-        queryset = super().qs
-        user = getattr(self.request, "user", None)
-        if user != None:
-            if user.is_anonymous == False:
-                return queryset.filter(Q(creator=user.id) | Q(allowed_users=user))
-        return queryset
+    # @property
+    # def qs(self):
+    #     queryset = super().qs
+    #     user = getattr(self.request, "user", None)
+    #     if user != None:
+    #         if user.is_anonymous == False:
+    #             return queryset.filter(Q(creator=user.id) | Q(allowed_users=user) | Q(is_public=True))
+    #     return queryset
 
 
 @method_decorator(
@@ -76,7 +76,7 @@ class AlbumViewset(
     filterset_class = AlbumFilter
     search_fields = ["name", "creator__first_name", "creator__last_name", "creator__email"]
     ordering_fields = ["name", "created"]
-    ordering = ["-created"]
+    ordering = ["name"]
 
     def get_serializer_class(self):
         if self.action == "create" or self.action == "partial_update":
@@ -208,8 +208,8 @@ class ImageViewset(viewsets.ViewSet):
         return album
 
     def get_permissions(self):
-        if self.action in ["destroy", "partial_update"]:
-            permission_classes = [IsAuthor]
+        if self.action in ["destroy", "partial_update", "create"]:
+            permission_classes = [IsAuthenticated & IsAuthor]
         else:
             permission_classes = [IsAuthorOrHasAccess]
         return [permission() for permission in permission_classes]

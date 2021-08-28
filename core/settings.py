@@ -39,9 +39,9 @@ DEBUG = True
 TEST = False
 TEST_DIR = "test_data"
 
-ALLOWED_HOSTS = []
-
 CLIENT_URL = "http://localhost:3000"
+ALLOWED_HOSTS = ["*"]
+
 CORS_ALLOWED_ORIGINS = [CLIENT_URL]
 # CORS_ORIGIN_ALLOW_ALL = True
 SESSION_COOKIE_SAMESITE = None
@@ -207,7 +207,7 @@ REST_FRAMEWORK = {
         "no_underscore_before_number": True,
     },
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
-    "PAGE_SIZE": 25,
+    "PAGE_SIZE": 2,
 }
 
 SIMPLE_JWT = {

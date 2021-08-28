@@ -30,7 +30,7 @@ class Image(models.Model):
     )
     image_thumbnail = ImageSpecField(
         source="image",
-        processors=[ResizeToFill(300, 200)],
+        processors=[ResizeToFill(300, 300)],
         format="JPEG",
         options={"quality": 80},
     )

@@ -71,7 +71,4 @@ class ProfileListSerializer(serializers.ModelSerializer):
 
 
 class ProfileNestedSerializer(ProfileSerializer):
-    from album.serializers import AlbumSerializer
-
-    portfolio = AlbumSerializer(read_only=True)
     owner = UserBasicInfoSerializer(read_only=True)

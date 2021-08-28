@@ -20,14 +20,6 @@ from .serializers import (
 )
 
 
-class UserActivationView(APIView):
-    def get(self, request, uid, token):
-        post_url = reverse("user-activation", request=request)
-        post_data = {"uid": uid, "token": token}
-        request = requests.post(post_url, data=post_data)
-        return Response(request.text)
-
-
 class ProfileViewSet(
     mixins.RetrieveModelMixin,
     mixins.ListModelMixin,
