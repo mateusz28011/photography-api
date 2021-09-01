@@ -5,7 +5,7 @@ from django.http.response import HttpResponseRedirect
 from django.utils.decorators import method_decorator
 from django_filters import rest_framework as filters
 from django_filters.rest_framework import DjangoFilterBackend
-from django_sendfile import sendfile
+from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
@@ -28,6 +28,7 @@ from .serializers import (
     AlbumCreateUpdateSerializer,
     AlbumListSerializer,
     AlbumSerializer,
+    ImageSerializer,
     ImageUpdateSerializer,
     ImageUploadSerializer,
 )
@@ -225,7 +226,16 @@ class ImageViewset(viewsets.ViewSet):
         serializer.save()
         return Response(serializer.data)
 
-    @swagger_auto_schema(operation_description="Adding image to specified album.", request_body=ImageUploadSerializer)
+    @swagger_auto_schema(
+        operation_description="Adding image to specified album.",
+        request_body=ImageUploadSerializer,
+        responses={
+            status.HTTP_201_CREATED: openapi.Response(
+                description="",
+                schema=ImageSerializer,
+            )
+        },
+    )
     def create(self, request, *args, **kwargs):
         album = self.get_album_object()
 
@@ -235,8 +245,10 @@ class ImageViewset(viewsets.ViewSet):
         serializer.validated_data["album"] = album
         image = serializer.save()
 
-        image_url = reverse("album-images-detail", args=[album.id, image.id], request=request)
-        return Response({"id": image.id, "image": image_url}, status.HTTP_201_CREATED)
+        response_serializer = ImageSerializer(image, context={"request": request})
+        return Response(response_serializer.data, status.HTTP_201_CREATED)
+        # image_url = reverse("album-images-detail", args=[album.id, image.id], request=request)
+        # return Response({"id": image.id, "image": image_url}, status.HTTP_201_CREATED)
 
     @swagger_auto_schema(operation_description="Getting image from specified album by image's **\{id\}**.")
     def retrieve(self, request, *args, **kwargs):

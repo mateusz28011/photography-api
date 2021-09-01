@@ -1,5 +1,4 @@
 from accounts.serializers import UserBasicInfoSerializer
-from core.settings import BASE_DIR
 from django.db.models import Q
 from rest_framework import serializers
 from rest_framework.reverse import reverse
@@ -8,15 +7,11 @@ from .models import Album, Image
 
 
 class AlbumListSerializer(serializers.ModelSerializer):
-    url = serializers.SerializerMethodField()
     creator = UserBasicInfoSerializer(read_only=True)
 
     class Meta:
         model = Album
-        fields = ["id", "creator", "name", "url", "is_public", "created"]
-
-    def get_url(self, obj):
-        return reverse("album-detail", args=[obj.id], request=self.context["request"])
+        fields = ["id", "creator", "name", "is_public", "created"]
 
 
 class AlbumCreateUpdateSerializer(serializers.ModelSerializer):
@@ -29,14 +24,21 @@ class AlbumSerializer(serializers.ModelSerializer):
     images = serializers.SerializerMethodField()
     child_albums = serializers.SerializerMethodField()
     allowed_users = serializers.SerializerMethodField()
-    # allowed_users = UserBasicInfoSerializer(many=True, read_only=True)
-    parent_album = AlbumListSerializer(read_only=True)
+    parent_album = serializers.SerializerMethodField()
+    # parent_album = AlbumListSerializer(read_only=True)
     creator = UserBasicInfoSerializer(read_only=True)
 
     class Meta:
         model = Album
         fields = "__all__"
         read_only_fields = ["created", "allowed_users"]
+
+    def get_parent_album(self, obj):
+        user = self.context["request"].user
+        parent_album = obj.parent_album
+        if parent_album:
+            if parent_album.is_public or user == parent_album.creator or (user in parent_album.allowed_users.all()):
+                return AlbumListSerializer(parent_album).data
 
     def get_allowed_users(self, obj):
         user = self.context["request"].user
@@ -55,7 +57,7 @@ class AlbumSerializer(serializers.ModelSerializer):
             albums = obj.album_set.all()
         else:
             albums = obj.album_set.filter(Q(allowed_users__exact=user) | Q(is_public=True))
-        return AlbumListSerializer(albums, many=True, context={"request": self.context["request"]}).data
+        return AlbumListSerializer(albums, many=True).data
 
 
 class ImageSerializer(serializers.ModelSerializer):
@@ -68,12 +70,12 @@ class ImageSerializer(serializers.ModelSerializer):
 
     def get_url(self, obj):
         request = self.context["request"]
-        album_id = request.parser_context["kwargs"]["pk"]
+        album_id = obj.album.id
         return reverse("album-images-detail", args=[album_id, obj.id], request=request)
 
     def get_thumbnail_url(self, obj):
         request = self.context["request"]
-        album_id = request.parser_context["kwargs"]["pk"]
+        album_id = obj.album.id
         return reverse("album-images-thumbnail", args=[album_id, obj.id], request=request)
 
 
