@@ -1,6 +1,7 @@
 from accounts.models import User
 from core.utils import SwaggerOrderingFilter, SwaggerSearchFilter
 from django.db.models import Q
+from django.db.models.query import QuerySet
 from django.http.response import HttpResponseRedirect
 from django.utils.decorators import method_decorator
 from django_filters import rest_framework as filters
@@ -10,7 +11,7 @@ from drf_yasg.utils import swagger_auto_schema
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound, PermissionDenied, ValidationError
-from rest_framework.parsers import MultiPartParser
+from rest_framework.parsers import JSONParser, MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
@@ -35,29 +36,20 @@ from .serializers import (
 
 
 class AlbumFilter(filters.FilterSet):
-    created = filters.BooleanFilter(field_name="creator", method="filter_created")
-    allowed = filters.BooleanFilter(field_name="allowed_users", method="filter_allowed")
+    # created = filters.BooleanFilter(field_name="creator", method="filter_created")
+    # accessed = filters.BooleanFilter(field_name="allowed_users", method="filter_allowed")
 
-    def filter_created(self, queryset, name, value):
-        lookup = "__".join([name, "exact"])
-        return queryset.filter(**{lookup: self.request.user.id})
+    # def filter_created(self, queryset, name, value):
+    #     lookup = "__".join([name, "exact"])
+    #     return queryset.filter(**{lookup: self.request.user.id})
 
-    def filter_allowed(self, queryset, name, value):
-        lookup = "__".join([name, "exact"])
-        return queryset.filter(**{lookup: self.request.user.id})
+    # def filter_allowed(self, queryset, name, value):
+    #     lookup = "__".join([name, "exact"])
+    #     return queryset.filter(**{lookup: self.request.user.id})
 
     class Meta:
         model = Album
         fields = ["is_public"]
-
-    # @property
-    # def qs(self):
-    #     queryset = super().qs
-    #     user = getattr(self.request, "user", None)
-    #     if user != None:
-    #         if user.is_anonymous == False:
-    #             return queryset.filter(Q(creator=user.id) | Q(allowed_users=user) | Q(is_public=True))
-    #     return queryset
 
 
 @method_decorator(
@@ -75,9 +67,21 @@ class AlbumViewset(
     serializer_class = AlbumSerializer
     filter_backends = [DjangoFilterBackend, SwaggerOrderingFilter, SwaggerSearchFilter]
     filterset_class = AlbumFilter
-    search_fields = ["name", "creator__first_name", "creator__last_name", "creator__email"]
+    # search_fields = ["name", "creator__first_name", "creator__last_name", "creator__email"]
+    search_fields = ["name"]
     ordering_fields = ["name", "created"]
     ordering = ["name"]
+
+    def get_queryset(self):
+        if self.action == "list":
+            user = self.request.user
+            queryset = Album.objects.filter((Q(parent_album=None) & Q(creator=user)))
+        else:
+            queryset = self.queryset
+
+        if isinstance(queryset, QuerySet):
+            queryset = queryset.all()
+        return queryset
 
     def get_serializer_class(self):
         if self.action == "create" or self.action == "partial_update":
@@ -91,8 +95,10 @@ class AlbumViewset(
             permission_classes = [IsAuthenticated & CanCreate]
         elif self.action == "partial_update":
             permission_classes = [IsAuthenticated & CanCreate & IsCreator]
-        elif self.action in ["retrieve", "list"]:
+        elif self.action in ["retrieve"]:
             permission_classes = [IsCreatorOrHasAccess]
+        elif self.action in ["list"]:
+            permission_classes = [IsAuthenticated]
         else:
             permission_classes = [IsCreator]
         return [permission() for permission in permission_classes]
@@ -187,7 +193,7 @@ class AllowedUsersViewSet(viewsets.ViewSet):
 
 
 class ImageViewset(viewsets.ViewSet):
-    parser_classes = (MultiPartParser,)
+    parser_classes = (MultiPartParser, JSONParser)
 
     def get_object(self):
         try:

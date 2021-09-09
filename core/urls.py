@@ -13,7 +13,7 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from accounts.views import ProfileViewSet
+from accounts.views import ProfileViewSet, UserViewSet
 from album.views import AlbumViewset, AllowedUsersViewSet, ImageViewset
 from dj_rest_auth.registration.views import ConfirmEmailView, VerifyEmailView
 from django.conf import settings
@@ -52,6 +52,7 @@ router = routers.SimpleRouter()
 router.register(r"orders", OrderViewSet)
 router.register(r"albums", AlbumViewset)
 router.register(r"profiles", ProfileViewSet)
+router.register(r"users", UserViewSet)
 
 notes_router = routers.NestedSimpleRouter(router, r"orders", lookup="order")
 notes_router.register(r"notes", NoteViewSet, basename="order-notes")

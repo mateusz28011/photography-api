@@ -10,14 +10,30 @@ from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework.views import APIView
 
-from accounts.models import Profile
+from accounts.models import Profile, User
 from accounts.permissions import IsOwner
 
 from .serializers import (
     ProfileListSerializer,
     ProfileNestedSerializer,
     ProfileSerializer,
+    UserBasicInfoSerializer,
 )
+
+
+class UserViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserBasicInfoSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [SwaggerSearchFilter]
+    search_fields = ["email", "first_name", "last_name"]
+
+    def filter_queryset(self, queryset):
+        for backend in list(self.filter_backends):
+            queryset = backend().filter_queryset(self.request, queryset, self)
+        print(queryset)
+        queryset = queryset.exclude(id=self.request.user.id)
+        return queryset
 
 
 class ProfileViewSet(
