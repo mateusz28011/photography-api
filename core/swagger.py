@@ -18,8 +18,8 @@ class WriteOnly:
         new_fields = OrderedDict()
         for fieldName, field in super().get_fields().items():
             if not field.read_only:
-                if fieldName == "client":
-                    print(fieldName, field)
+                # if fieldName == "client":
+                #     print(fieldName, field)
                 new_fields[fieldName] = field
         return new_fields
 

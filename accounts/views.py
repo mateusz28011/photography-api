@@ -7,12 +7,11 @@ from rest_framework.exceptions import PermissionDenied
 from rest_framework.parsers import JSONParser, MultiPartParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.reverse import reverse
-from rest_framework.views import APIView
 
 from accounts.models import Profile, User
 from accounts.permissions import IsOwner
 
+from .paginations import UserListPagination
 from .serializers import (
     ProfileListSerializer,
     ProfileNestedSerializer,
@@ -22,16 +21,16 @@ from .serializers import (
 
 
 class UserViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
-    queryset = User.objects.all()
+    queryset = User.objects.get_queryset().order_by("email")
     serializer_class = UserBasicInfoSerializer
     permission_classes = [IsAuthenticated]
     filter_backends = [SwaggerSearchFilter]
     search_fields = ["email", "first_name", "last_name"]
+    pagination_class = UserListPagination
 
     def filter_queryset(self, queryset):
         for backend in list(self.filter_backends):
             queryset = backend().filter_queryset(self.request, queryset, self)
-        print(queryset)
         queryset = queryset.exclude(id=self.request.user.id)
         return queryset
 
@@ -45,7 +44,7 @@ class ProfileViewSet(
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
     permission_classes = [IsAuthenticated]
-    parser_classes = (MultiPartParser,)
+    parser_classes = (MultiPartParser, JSONParser)
     filter_backends = [DjangoFilterBackend, SwaggerOrderingFilter, SwaggerSearchFilter]
     search_fields = ["name", "description"]
     ordering_fields = ["name", "created"]
