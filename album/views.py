@@ -253,8 +253,6 @@ class ImageViewset(viewsets.ViewSet):
 
         response_serializer = ImageSerializer(image, context={"request": request})
         return Response(response_serializer.data, status.HTTP_201_CREATED)
-        # image_url = reverse("album-images-detail", args=[album.id, image.id], request=request)
-        # return Response({"id": image.id, "image": image_url}, status.HTTP_201_CREATED)
 
     @swagger_auto_schema(operation_description="Getting image from specified album by image's **\{id\}**.")
     def retrieve(self, request, *args, **kwargs):

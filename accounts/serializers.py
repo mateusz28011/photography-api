@@ -29,21 +29,8 @@ class CustomRegisterSerializer(RegisterSerializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = [
-            "id",
-            "email",
-            "first_name",
-            "last_name",
-            "join_date",
-            "is_staff",
-            "is_vendor",
-        ]
-        read_only_fields = [
-            "email",
-            "join_date",
-            "is_staff",
-            "is_vendor",
-        ]
+        fields = ["id", "email", "first_name", "last_name", "join_date", "is_staff", "is_vendor", "profile"]
+        read_only_fields = ["email", "join_date", "is_staff", "is_vendor", "profile"]
 
 
 class UserBasicInfoSerializer(serializers.ModelSerializer):
@@ -53,12 +40,13 @@ class UserBasicInfoSerializer(serializers.ModelSerializer):
 
 
 class ProfileSerializer(serializers.ModelSerializer):
+    owner = UserBasicInfoSerializer(read_only=True)
+
     class Meta:
         model = Profile
         fields = "__all__"
         extra_kwargs = {
             "portfolio": {"read_only": True},
-            "owner": {"read_only": True},
             "created": {"read_only": True},
             "avatar": {"read_only": False},
         }
@@ -70,5 +58,5 @@ class ProfileListSerializer(serializers.ModelSerializer):
         exclude = ["payment_info", "portfolio", "owner"]
 
 
-class ProfileNestedSerializer(ProfileSerializer):
-    owner = UserBasicInfoSerializer(read_only=True)
+# class ProfileNestedSerializer(ProfileSerializer):
+#     owner = UserBasicInfoSerializer(read_only=True)

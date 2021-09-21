@@ -1,4 +1,3 @@
-import requests
 from core.utils import SwaggerOrderingFilter, SwaggerSearchFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg.utils import swagger_auto_schema
@@ -12,9 +11,8 @@ from accounts.models import Profile, User
 from accounts.permissions import IsOwner
 
 from .paginations import UserListPagination
-from .serializers import (
+from .serializers import (  # ProfileNestedSerializer,
     ProfileListSerializer,
-    ProfileNestedSerializer,
     ProfileSerializer,
     UserBasicInfoSerializer,
 )
@@ -44,16 +42,13 @@ class ProfileViewSet(
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
     permission_classes = [IsAuthenticated]
-    parser_classes = (MultiPartParser, JSONParser)
     filter_backends = [DjangoFilterBackend, SwaggerOrderingFilter, SwaggerSearchFilter]
     search_fields = ["name", "description"]
     ordering_fields = ["name", "created"]
     ordering = ["name"]
 
     def get_serializer_class(self):
-        if self.action == "retrieve":
-            return ProfileNestedSerializer
-        elif self.action == "list":
+        if self.action == "list":
             return ProfileListSerializer
         return self.serializer_class
 
@@ -88,6 +83,7 @@ class ProfileViewSet(
         instance = self.get_object()
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
+
         if "avatar" in request.data:
             if instance.avatar != "default/avatar.png":
                 instance.avatar.delete()

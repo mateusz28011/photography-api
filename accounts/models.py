@@ -62,7 +62,7 @@ class Profile(models.Model):
         validators=[validate_image],
     )
     description = models.TextField()
-    payment_info = models.TextField()
+    payment_info = models.TextField(blank=True)
     portfolio = models.OneToOneField("album.Album", on_delete=models.PROTECT, blank=True)
     owner = models.OneToOneField(User, on_delete=models.CASCADE)
     created = models.DateTimeField(default=timezone.now)
