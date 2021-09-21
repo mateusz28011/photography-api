@@ -1,4 +1,4 @@
-from accounts.serializers import UserSerializer
+from accounts.serializers import UserBasicInfoSerializer, UserSerializer
 from album.serializers import AlbumSerializer
 from drf_yasg.utils import swagger_serializer_method
 from rest_framework import serializers
@@ -80,25 +80,35 @@ class OrderUpdateSerializer(serializers.ModelSerializer):
                             "status": 'You can only set status to  "Canceled" or "Finished" when order\'s status is "Payment received"'
                         }
                     )
+        if "cost" in attrs:
+            if request.user == self.instance.vendor and current_status not in [3, 4]:
+                raise ValidationError(
+                    {"status": 'You can only change cost when order status is "Accepted" or "Waiting for payment"'}
+                )
         return attrs
 
 
 class OrderNestedSerializer(serializers.ModelSerializer):
     vendor = UserSerializer(read_only=True)
     client = UserSerializer(read_only=True)
-    notes = serializers.SerializerMethodField(read_only=True)
-    album = AlbumSerializer(read_only=True)
+    # notes = serializers.SerializerMethodField(read_only=True)
+    # album = AlbumSerializer(read_only=True)
     status_display = serializers.CharField(source="get_status_display", read_only=True)
     payment_info = serializers.SerializerMethodField(read_only=True)
+    profile_name = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Order
         fields = "__all__"
+        read_only_field = ["album"]
 
-    @swagger_serializer_method(serializer_or_field=NoteSerializer)
-    def get_notes(self, obj):
-        notes = obj.note_set.all()
-        return NoteSerializer(notes, many=True).data
+    def get_profile_name(self, obj):
+        return obj.vendor.profile.name
+
+    # @swagger_serializer_method(serializer_or_field=NoteSerializer)
+    # def get_notes(self, obj):
+    #     notes = obj.note_set.all()
+    #     return NoteSerializer(notes, many=True).data
 
     def get_payment_info(self, obj):
         try:
@@ -109,8 +119,14 @@ class OrderNestedSerializer(serializers.ModelSerializer):
 
 
 class OrderListSerializer(serializers.ModelSerializer):
+    vendor = UserBasicInfoSerializer(read_only=True)
+    client = UserBasicInfoSerializer(read_only=True)
     status_display = serializers.CharField(source="get_status_display", read_only=True)
+    profile_name = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Order
         exclude = ["album", "status"]
+
+    def get_profile_name(self, obj):
+        return obj.vendor.profile.name

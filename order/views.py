@@ -1,5 +1,6 @@
-from core.utils import SwaggerOrderingFilter
+from core.utils import SwaggerOrderingFilter, SwaggerSearchFilter
 from django.db.models import Q
+from django_filters import rest_framework as filters
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import mixins, status, viewsets
@@ -18,11 +19,30 @@ from .serializers import (
 )
 
 
+class OrderFilter(filters.FilterSet):
+    is_client = filters.BooleanFilter(field_name="client", method="filter_is_client")
+    is_vendor = filters.BooleanFilter(field_name="vendor", method="filter_is_vendor")
+
+    def filter_is_client(self, queryset, name, value):
+        lookup = "__".join([name, "exact"])
+        return queryset.filter(**{lookup: self.request.user.id})
+
+    def filter_is_vendor(self, queryset, name, value):
+        lookup = "__".join([name, "exact"])
+        return queryset.filter(**{lookup: self.request.user.id})
+
+    class Meta:
+        model = Order
+        fields = ["status"]
+
+
 class OrderViewSet(mixins.RetrieveModelMixin, mixins.ListModelMixin, viewsets.GenericViewSet):
     queryset = Order.objects.all()
     serializer_class = OrderListSerializer
-    filter_backends = [DjangoFilterBackend, SwaggerOrderingFilter]
-    filterset_fields = ["client", "vendor", "status"]
+    filter_backends = [DjangoFilterBackend, SwaggerOrderingFilter, SwaggerSearchFilter]
+    filterset_class = OrderFilter
+    # filterset_fields = ["client", "vendor", "status"]
+    search_fields = ["vendor__profile__name", "client__first_name", "client__last_name", "client__email"]
     ordering_fields = ["created", "status", "cost"]
     ordering = ["-created"]
 
@@ -60,7 +80,7 @@ class OrderViewSet(mixins.RetrieveModelMixin, mixins.ListModelMixin, viewsets.Ge
         operation_description="""
         **Available statuses:**
         
-        The created orders have a default status of 2.
+        The created orders have default status of 2.
 
                 0 - Canceled
                 1 - Rejected
@@ -116,6 +136,20 @@ class NoteViewSet(viewsets.GenericViewSet):
         self.check_object_permissions(self.request, obj)
 
         return obj
+
+    #     notes = obj.note_set.all()
+    #     return NoteSerializer(notes, many=True).data
+    def list(self, request, *args, **kwargs):
+        order = self.get_object()
+        queryset = order.note_set.all().order_by("-created")
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
     @swagger_auto_schema(operation_description="Add note to specified order.")
     def create(self, request, *args, **kwargs):

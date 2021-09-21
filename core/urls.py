@@ -52,7 +52,7 @@ router = routers.SimpleRouter()
 router.register(r"orders", OrderViewSet)
 router.register(r"albums", AlbumViewset)
 router.register(r"profiles", ProfileViewSet)
-router.register(r"users", UserViewSet)
+router.register(r"dj-rest-auth/users", UserViewSet)
 
 notes_router = routers.NestedSimpleRouter(router, r"orders", lookup="order")
 notes_router.register(r"notes", NoteViewSet, basename="order-notes")
