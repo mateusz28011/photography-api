@@ -13,7 +13,7 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from accounts.views import FacebookLogin, ProfileViewSet, UserViewSet
+from accounts.views import FacebookLogin, GoogleLogin, ProfileViewSet, UserViewSet
 from album.views import AlbumViewset, AllowedUsersViewSet, ImageViewset
 from dj_rest_auth.registration.views import ConfirmEmailView, VerifyEmailView
 from django.conf import settings
@@ -79,7 +79,8 @@ urlpatterns = (
             VerifyEmailView.as_view(),
             name="account_email_verification_sent",
         ),
-        path("dj-rest-auth/facebook/", FacebookLogin.as_view(), name="fb_login")
+        path("dj-rest-auth/facebook/", FacebookLogin.as_view(), name="fb_login"),
+        path("dj-rest-auth/google/", GoogleLogin.as_view(), name="google_login")
         # path(
         #     "dj-rest-auth/account-confirm-email/<str:key>/",
         #     VerifyEmailView.as_view(),
