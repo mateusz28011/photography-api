@@ -39,12 +39,12 @@ DEBUG = True
 TEST = False
 TEST_DIR = "test_data"
 
-CLIENT_URL = "http://localhost:3000"
+CLIENT_URL = "https://localhost:3000"
 ALLOWED_HOSTS = ["*"]
 
-CORS_ALLOWED_ORIGINS = [CLIENT_URL]
-# CORS_ORIGIN_ALLOW_ALL = True
-SESSION_COOKIE_SAMESITE = None
+# CORS_ALLOWED_ORIGINS = [CLIENT_URL]
+CORS_ORIGIN_ALLOW_ALL = True
+# SESSION_COOKIE_SAMESITE = None
 CORS_ALLOW_CREDENTIALS = True
 
 AUTH_USER_MODEL = "accounts.User"
@@ -68,6 +68,7 @@ INSTALLED_APPS = [
     "allauth.account",
     "dj_rest_auth.registration",
     "allauth.socialaccount",
+    "allauth.socialaccount.providers.facebook",
     "accounts",
     "order",
     "album",
@@ -75,6 +76,7 @@ INSTALLED_APPS = [
     "django_sendfile",
     "drf_yasg",
     "storages",
+    "sslserver",
 ]
 
 MIDDLEWARE = [
@@ -247,7 +249,8 @@ REST_SESSION_LOGIN = False
 REST_USE_JWT = True
 JWT_AUTH_COOKIE = "access-token"
 JWT_AUTH_REFRESH_COOKIE = "refresh-token"
-SITE_ID = 1
+# JWT_AUTH_SAMESITE = None
+SITE_ID = 2
 
 AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
 AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")

@@ -1,4 +1,6 @@
+from allauth.socialaccount.providers.facebook.views import FacebookOAuth2Adapter
 from core.utils import SwaggerOrderingFilter, SwaggerSearchFilter
+from dj_rest_auth.registration.views import SocialLoginView
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import mixins, status, viewsets
@@ -11,7 +13,7 @@ from accounts.models import Profile, User
 from accounts.permissions import IsOwner
 
 from .paginations import UserListPagination
-from .serializers import (  # ProfileNestedSerializer,
+from .serializers import (
     ProfileListSerializer,
     ProfileSerializer,
     UserBasicInfoSerializer,
@@ -93,3 +95,7 @@ class ProfileViewSet(
             instance._prefetched_objects_cache = {}
 
         return Response(serializer.data)
+
+
+class FacebookLogin(SocialLoginView):
+    adapter_class = FacebookOAuth2Adapter
