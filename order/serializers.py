@@ -38,6 +38,10 @@ class OrderUpdateSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         current_status = self.instance.status
         request = self.context["request"]
+        if "album" in attrs:
+            new_album = attrs["album"]
+            if new_album == self.instance.vendor.profile.portfolio:
+                raise ValidationError({"album": "You cannot assign portfolio to orders."})
         if "status" in attrs:
             new_status = attrs["status"]
             if self.instance.status in [0, 1, 6]:

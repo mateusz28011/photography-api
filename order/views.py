@@ -1,3 +1,4 @@
+from album.models import Album
 from core.utils import SwaggerOrderingFilter, SwaggerSearchFilter
 from django.db.models import Q
 from django_filters import rest_framework as filters
@@ -96,7 +97,7 @@ class OrderViewSet(mixins.RetrieveModelMixin, mixins.ListModelMixin, viewsets.Ge
             Can only update status when it is 2 and can only be set to 0.
 
         * ### Vendor
-            Upating album automatically adds client to allowed users.
+            Upating album automatically adds client to allowed users and makes it private.
             Available update for specific status:
             * 2 -> 1 or 3
             * 3 -> 0, 4 or 6
@@ -110,11 +111,18 @@ class OrderViewSet(mixins.RetrieveModelMixin, mixins.ListModelMixin, viewsets.Ge
 
         serializer = self.get_serializer(instance, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
+
+        if "album" in request.data and request.data["album"] == None:
+            album = instance.album
+            album.allowed_users.remove(instance.client)
+            album.save()
+
         instance = serializer.save()
 
-        if "album" in request.data:
+        if "album" in request.data and request.data["album"] != None:
             album = instance.album
             album.allowed_users.add(instance.client)
+            album.is_public = False
             album.save()
 
         return Response(serializer.data)
