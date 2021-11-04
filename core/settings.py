@@ -14,6 +14,7 @@ import os
 from datetime import timedelta
 from pathlib import Path
 
+import django_heroku
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -32,18 +33,23 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = DJANGO_SECRET_KEY
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv("DEBUG")
 
 TEST = False
 TEST_DIR = "test_data"
 
-CLIENT_URL = "https://localhost:3000"
-ALLOWED_HOSTS = ["*"]
+CLIENT_URL = os.getenv("CLIENT_URL")
+ALLOWED_HOSTS = [CLIENT_URL]
 
-# CORS_ALLOWED_ORIGINS = [CLIENT_URL]
-CORS_ORIGIN_ALLOW_ALL = True
-# SESSION_COOKIE_SAMESITE = None
+
+JWT_AUTH_SAMESITE = "None"
+JWT_AUTH_SECURE = True
+# JWT_AUTH_COOKIE_USE_CSRF = True
+
 CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOWED_ORIGINS = [CLIENT_URL]
+CSRF_TRUSTED_ORIGINS = [CLIENT_URL]
 
 AUTH_USER_MODEL = "accounts.User"
 
@@ -260,7 +266,6 @@ REST_SESSION_LOGIN = False
 REST_USE_JWT = True
 JWT_AUTH_COOKIE = "access-token"
 JWT_AUTH_REFRESH_COOKIE = "refresh-token"
-# JWT_AUTH_SAMESITE = None
 SITE_ID = 2
 
 AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
@@ -282,3 +287,5 @@ PRIVATE_FILE_STORAGE = "core.storage_backends.PrivateMediaStorage"
 IMAGEKIT_DEFAULT_CACHEFILE_STRATEGY = "imagekit.cachefiles.strategies.Optimistic"
 IMAGEKIT_DEFAULT_FILE_STORAGE = "core.storage_backends.PrivateMediaStorage"
 IMAGEKIT_CACHEFILE_DIR = ""
+
+django_heroku.settings(locals())
