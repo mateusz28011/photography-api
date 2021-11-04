@@ -33,10 +33,9 @@ schema_view = get_schema_view(
         default_version="v1",
         description="""
         #### How to start?
-        1. Create your account through **_POST /auth/users_**.
+        1. Create your account through **_POST /dj-rest-auth/registration_**.
         2. Activate your account by clicking link sent to your e-mail.
-        3. Create your access token through **_POST /auth/jwt/create_**.
-        4. Authorize yourself by clicking green button below. In value field paste your token as **_JWT \{token\}_**.
+        3. Login through **_POST /dj-rest-auth/login_**.
         5. Now you are ready to go!
         """,
         terms_of_service="https://www.google.com/policies/terms/",
