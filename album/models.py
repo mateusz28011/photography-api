@@ -34,7 +34,7 @@ class Image(models.Model):
         format="JPEG",
         options={"quality": 80},
     )
-    title = models.CharField(max_length=100)
+    title = models.CharField(blank=True, max_length=100)
     created = models.DateTimeField(default=timezone.now)
     author = models.ForeignKey(User, on_delete=models.PROTECT)
     album = models.ForeignKey(Album, on_delete=models.CASCADE)
