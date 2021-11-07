@@ -110,8 +110,8 @@ By creating a profile, the user becomes a vendor. Portfolio is created automatic
     DATABASE_NAME=<database_name>
     DATABASE_USER=<database_user>
     DATABASE_PASSWORD=<database_password>
-    DATABASE_HOST=<database_password>
-    DATABASE_PORT=<database_password>
+    DATABASE_HOST=<database_host>
+    DATABASE_PORT=<database_port>
     DJANGO_SECRET_KEY=<django_secret_key>
     AWS_ACCESS_KEY_ID=<aws_access_key_id>
     AWS_SECRET_ACCESS_KEY=<aws_secret_access_key>
