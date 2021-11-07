@@ -1,6 +1,6 @@
 # PhotoBay - api
 
-![Screenshot of site](https://raw.github.com/mateusz28011/photography-api/main/Photography-API.png)
+![Screenshot of site](https://raw.github.com/mateusz28011/photography-api/master/Photography-API.png)
 
 ## Table of contents
 
@@ -100,7 +100,36 @@ By creating a profile, the user becomes a vendor. Portfolio is created automatic
 
 ## Setup
 
-TODO
+### Clone repository
+    git clone https://github.com/mateusz28011/photography-api.git
+### Create file `.env` and put there
+    EMAIL_HOST=<email_host>
+    EMAIL_PORT=<email_port>
+    EMAIL_ADDRESS=<email_address>
+    EMAIL_APP_PASSWORD=<email_app_password>
+    DATABASE_NAME=<database_name>
+    DATABASE_USER=<database_user>
+    DATABASE_PASSWORD=<database_password>
+    DATABASE_HOST=<database_password>
+    DATABASE_PORT=<database_password>
+    DJANGO_SECRET_KEY=<django_secret_key>
+    AWS_ACCESS_KEY_ID=<aws_access_key_id>
+    AWS_SECRET_ACCESS_KEY=<aws_secret_access_key>
+    AWS_STORAGE_BUCKET_NAME=<aws_storage_bucket_name>
+    AWS_S3_REGION_NAME=<aws_se_region_name>
+    CLIENT_URL=<client_url>
+    DEBUG=<true | false>
+### Install dependecies
+    pip install -r requirements.txt
+### Make migrations
+    python manage.py makemigrations
+    python manage.py migrate
+### Collect static files
+    python manage.py collectstatic
+### Run local server
+    python manage.py runsslserver
+### Open your browser and enter
+    https://localhost:8000
 
 ## Sources
 
