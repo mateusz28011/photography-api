@@ -17,7 +17,7 @@
 
 ## General Info
 
-This is application for photographers and their customers. I wanted to create place where:\
+This is application for photographers and their customers. I wanted to create place where:
 - Photograpers can:
     - easily show his/her work to world, 
     - manage his/her albums and images in one place,
@@ -81,19 +81,18 @@ The created orders have default status of 2.
 #### Permissions
 If order status is 0, 1 or 6 it cannot be changed.
 - **Client**\
-Can only update status.\
-Can only update status when it is 2 and can only be set to 0.\
+Can only update status when it is 2 and can only be set to 0.
 - **Vendor**\
 Upating album automatically adds client to allowed users and makes it private.\
-Available update for specific status:\
+Available update for specific status:
     - 2 -> 1 or 3
     - 3 -> 0, 4 or 6
         - If set to 4, cost cannot be null.
-    - 4 -> 0, 5, 6
+    - 4 -> 0, 5 or 6
     - 5 -> 0 or 6
     
 ### Profiles
-By creating a profile, the user becomes a vendor. Portfolio is created automatically and can not be deleted, this is album in which vendor can create nested albums and upload photos to show his/her skills etc. Payment info is optional beacouse there is no payment system implemented.
+By creating a profile, the user becomes a vendor. Portfolio is album in which vendor can create nested albums and upload photos to show his/her skills etc, created automatically and can not be deleted. Payment info is optional because payment system is not implemented.
 
 - Searching, ordering and pagination.
 - Uploading avatar.
