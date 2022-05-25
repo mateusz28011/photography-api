@@ -13,7 +13,7 @@
 
 ## Live demo
 
-[Demo link](https://photography-api-project.herokuapp.com/)
+[Demo link](https://photography-api-project.herokuapp.com/) (Loading may take a while)
 
 ## General Info
 
